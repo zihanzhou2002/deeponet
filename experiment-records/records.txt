@@ -1,0 +1,614 @@
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation> c: && cd c:\Users\zzh\Desktop\Oxford\dissertation && cmd /C "c:\Users\zzh\Desktop\Oxford\dissertation\.venv\Scripts\python.exe c:\Users\zzh\.vscode\extensions\ms-python.debugpy-2025.0.1-win32-x64\bundled\libs\debugpy\launcher 56168 -- C:\Users\zzh\Desktop\Oxford\dissertation\deeponet\src\schrodinger_self_fourier.py "
+Using backend: pytorch
+Other supported backends: tensorflow.compat.v1, tensorflow, jax, paddle.
+paddle supports more examples now and is recommended.
+2025-03-12 01:55:47.851957: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-03-12 01:55:50.159917: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+x_train : (500, 10), (50,) 
+ y_train: (500, 10, 50)
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=10, out_features=100, bias=True)
+      (1): Linear(in_features=100, out_features=100, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=10, bias=True)
+      (1): Linear(in_features=10, out_features=10, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+)
+
+X_train shape : ((500, 10), (50,))
+y_train shape (500, 10, 50)
+Dataset generated
+Model: model_schro_prob_multi 
+
+Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+)
+
+Initialized
+Start training
+Epoch 1000, loss 4.714751, err = 4.631207
+Epoch 2000, loss 4.714167, err = 4.630558
+Epoch 3000, loss 4.713428, err = 4.629860
+Epoch 4000, loss 4.713294, err = 4.629710
+Epoch 5000, loss 4.713259, err = 4.629656
+Epoch 6000, loss 4.713236, err = 4.629622
+Epoch 7000, loss 4.713213, err = 4.629591
+Epoch 8000, loss 4.713206, err = 4.629579
+Epoch 9000, loss 4.713212, err = 4.629580
+Epoch 10000, loss 4.713224, err = 4.629587
+Backend tkagg is interactive backend. Turning interactive mode on.
+
+
+
+==========================================================================================================================================================================
+==========================================================================================================================================================================
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation>
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation> c: && cd c:\Users\zzh\Desktop\Oxford\dissertation && cmd /C "c:\Users\zzh\Desktop\Oxford\dissertation\.venv\Scripts\python.exe c:\Users\zzh\.vscode\extensions\ms-python.debugpy-2025.0.1-win32-x64\bundled\libs\debugpy\launcher 63396 -- C:\Users\zzh\Desktop\Oxford\dissertation\deeponet\src\schrodinger_self_fourier.py "
+Using backend: pytorch
+Other supported backends: tensorflow.compat.v1, tensorflow, jax, paddle.
+paddle supports more examples now and is recommended.
+2025-03-12 14:36:14.183496: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-03-12 14:36:22.205878: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+x_train : (1, 10), (50,) 
+ y_train: (1, 10, 50)
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=10, out_features=100, bias=True)
+      (1): Linear(in_features=100, out_features=100, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=10, bias=True)
+      (1): Linear(in_features=10, out_features=10, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+)
+
+X_train shape : ((1, 10), (50,))
+y_train shape (1, 10, 50)
+Dataset generated
+Model: model_schro_prob_multi 
+
+Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+)
+
+Initialized
+Start training
+Epoch 1000, loss 5.155674, err = 4.474563
+Epoch 2000, loss 5.155641, err = 4.444853
+Epoch 3000, loss 5.155629, err = 4.422873
+Epoch 4000, loss 5.155625, err = 4.406344
+Epoch 5000, loss 5.155622, err = 4.392158
+Epoch 6000, loss 5.155617, err = 4.377237
+Epoch 7000, loss 5.155617, err = 4.366112
+Epoch 8000, loss 5.155622, err = 4.356299
+Epoch 9000, loss 5.155615, err = 4.348683
+Epoch 10000, loss 5.155612, err = 4.342459
+Backend tkagg is interactive backend. Turning interactive mode on.
+
+
+============================================================================================================================================
+============================================================================================================================================
+
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation> c: && cd c:\Users\zzh\Desktop\Oxford\dissertation && cmd /C "c:\Users\zzh\Desktop\Oxford\dissertation\.venv\Scripts\python.exe c:\Users\zzh\.vscode\extensions\ms-python.debugpy-2025.0.1-win32-x64\bundled\libs\debugpy\launcher 63449 -- C:\Users\zzh\Desktop\Oxford\dissertation\deeponet\src\schrodinger_self_fourier.py "
+Using backend: pytorch
+Other supported backends: tensorflow.compat.v1, tensorflow, jax, paddle.
+paddle supports more examples now and is recommended.
+2025-03-12 14:40:23.833091: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-03-12 14:40:27.247695: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+x_train : (1, 10), (50,) 
+ y_train: (1, 10, 50)
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=10, out_features=100, bias=True)
+      (1): Linear(in_features=100, out_features=100, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=10, bias=True)
+      (1-2): 2 x Linear(in_features=10, out_features=10, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+)
+
+X_train shape : ((1, 10), (50,))
+y_train shape (1, 10, 50)
+Dataset generated
+Model: model_schro_multi 
+
+Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+)
+
+Initialized
+Start training
+Epoch 1000, loss 0.004995, err = 2.280983
+Epoch 2000, loss 0.001512, err = 2.249150
+Epoch 3000, loss 0.002069, err = 2.224171
+Epoch 4000, loss 0.002242, err = 2.181141
+Epoch 5000, loss 0.000776, err = 2.165319
+Epoch 6000, loss 0.001140, err = 2.144859
+Epoch 7000, loss 0.001510, err = 2.108615
+Epoch 8000, loss 0.001356, err = 2.082234
+Epoch 9000, loss 0.002218, err = 2.071456
+Epoch 10000, loss 0.002795, err = 2.047352
+Backend tkagg is interactive backend. Turning interactive mode on.
+
+
+============================================================================================================================================
+============================================================================================================================================
+
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation> c: && cd c:\Users\zzh\Desktop\Oxford\dissertation && cmd /C "c:\Users\zzh\Desktop\Oxford\dissertation\.venv\Scripts\python.exe c:\Users\zzh\.vscode\extensions\ms-python.debugpy-2025.0.1-win32-x64\bundled\libs\debugpy\launcher 63482 -- C:\Users\zzh\Desktop\Oxford\dissertation\deeponet\src\schrodinger_self_fourier.py "
+Using backend: pytorch
+Other supported backends: tensorflow.compat.v1, tensorflow, jax, paddle.
+paddle supports more examples now and is recommended.
+2025-03-12 14:42:37.202859: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-03-12 14:42:40.470775: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+x_train : (1, 10), (50,) 
+ y_train: (1, 10, 50)
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=10, out_features=100, bias=True)
+      (1): Linear(in_features=100, out_features=100, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=10, bias=True)
+      (1-2): 2 x Linear(in_features=10, out_features=10, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+)
+
+X_train shape : ((1, 10), (50,))
+y_train shape (1, 10, 50)
+Dataset generated
+Model: model_schro_multi 
+
+Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+)
+
+Initialized
+Start training
+Epoch 1000, loss 0.011860, err = 6.076214
+Epoch 2000, loss 0.008746, err = 6.067050
+Epoch 3000, loss 0.007272, err = 6.051768
+Epoch 4000, loss 0.006256, err = 6.039754
+Epoch 5000, loss 0.005204, err = 6.023709
+Epoch 6000, loss 0.005572, err = 6.012185
+Epoch 7000, loss 0.023644, err = 5.979672
+Epoch 8000, loss 0.004047, err = 5.971628
+Epoch 9000, loss 0.014042, err = 5.948841
+Epoch 10000, loss 0.003160, err = 5.936906
+Epoch 11000, loss 0.003890, err = 5.916234
+Epoch 12000, loss 0.002943, err = 5.898887
+Epoch 13000, loss 0.003021, err = 5.877448
+Epoch 14000, loss 0.003196, err = 5.858723
+Epoch 15000, loss 0.004397, err = 5.842314
+Epoch 16000, loss 0.002386, err = 5.820182
+Epoch 17000, loss 0.002614, err = 5.800037
+Epoch 18000, loss 0.007129, err = 5.779683
+Epoch 19000, loss 0.003349, err = 5.761667
+Epoch 20000, loss 0.002081, err = 5.749959
+Epoch 21000, loss 0.002112, err = 5.731480
+Epoch 22000, loss 0.001978, err = 5.717324
+Epoch 23000, loss 0.002019, err = 5.698337
+Epoch 24000, loss 0.002712, err = 5.681998
+Epoch 25000, loss 0.002759, err = 5.666721
+Epoch 26000, loss 0.001919, err = 5.656388
+Epoch 27000, loss 0.001876, err = 5.638731
+Epoch 28000, loss 0.001880, err = 5.622834
+Epoch 29000, loss 0.002396, err = 5.610883
+Epoch 30000, loss 0.001859, err = 5.593548
+Epoch 31000, loss 0.001846, err = 5.581078
+Epoch 32000, loss 0.006273, err = 5.564080
+Epoch 33000, loss 0.001939, err = 5.554417
+Epoch 34000, loss 0.001827, err = 5.544351
+Epoch 35000, loss 0.001860, err = 5.529661
+Epoch 36000, loss 0.001824, err = 5.526225
+Epoch 37000, loss 0.001831, err = 5.512127
+Epoch 38000, loss 0.002193, err = 5.502391
+Epoch 39000, loss 0.001886, err = 5.494427
+Epoch 40000, loss 0.002035, err = 5.484658
+Epoch 41000, loss 0.001751, err = 5.474472
+Epoch 42000, loss 0.001722, err = 5.467472
+Epoch 43000, loss 0.001724, err = 5.458582
+Epoch 44000, loss 0.001644, err = 5.451102
+Epoch 45000, loss 0.001534, err = 5.446183
+Epoch 46000, loss 0.001537, err = 5.437407
+Epoch 47000, loss 0.001527, err = 5.429605
+Epoch 48000, loss 0.001520, err = 5.422611
+Epoch 49000, loss 0.001525, err = 5.416011
+Epoch 50000, loss 0.001519, err = 5.410316
+Backend tkagg is interactive backend. Turning interactive mode on.
+
+============================================================================================================================================
+============================================================================================================================================
+
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation> c: && cd c:\Users\zzh\Desktop\Oxford\dissertation && cmd /C "c:\Users\zzh\Desktop\Oxford\dissertation\.venv\Scripts\python.exe c:\Users\zzh\.vscode\extensions\ms-python.debugpy-2025.0.1-win32-x64\bundled\libs\debugpy\launcher 63655 -- C:\Users\zzh\Desktop\Oxford\dissertation\deeponet\src\schrodinger_self_fourier.py "
+Using backend: pytorch
+Other supported backends: tensorflow.compat.v1, tensorflow, jax, paddle.
+paddle supports more examples now and is recommended.
+2025-03-12 14:53:17.438888: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-03-12 14:53:20.617401: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+x_train : (50, 10), (50,) 
+ y_train: (50, 10, 50)
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=10, out_features=100, bias=True)
+      (1): Linear(in_features=100, out_features=100, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=10, bias=True)
+      (1-2): 2 x Linear(in_features=10, out_features=10, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+)
+
+X_train shape : ((50, 10), (50,))
+y_train shape (50, 10, 50)
+Dataset generated
+Model: model_schro_multi 
+
+Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+)
+
+Initialized
+Start training
+Epoch 1000, loss 0.060784, err = 0.202939
+Epoch 2000, loss 0.015853, err = 0.226831
+Epoch 3000, loss 0.006036, err = 0.250354
+Epoch 4000, loss 0.004687, err = 0.238406
+Epoch 5000, loss 0.004573, err = 0.227652
+Epoch 6000, loss 0.003740, err = 0.218607
+Epoch 7000, loss 0.005861, err = 0.217095
+Epoch 8000, loss 0.006111, err = 0.202741
+Epoch 9000, loss 0.003385, err = 0.193301
+Epoch 10000, loss 0.003919, err = 0.188451
+Epoch 11000, loss 0.003965, err = 0.182789
+Epoch 12000, loss 0.003004, err = 0.178247
+Epoch 13000, loss 0.003121, err = 0.173389
+Epoch 14000, loss 0.002953, err = 0.170536
+Epoch 7000, loss 0.005861, err = 0.217095
+Epoch 8000, loss 0.006111, err = 0.202741
+Epoch 9000, loss 0.003385, err = 0.193301
+Epoch 10000, loss 0.003919, err = 0.188451
+Epoch 11000, loss 0.003965, err = 0.182789
+Epoch 12000, loss 0.003004, err = 0.178247
+Epoch 13000, loss 0.003121, err = 0.173389
+Epoch 14000, loss 0.002953, err = 0.170536
+Epoch 8000, loss 0.006111, err = 0.202741
+Epoch 9000, loss 0.003385, err = 0.193301
+Epoch 10000, loss 0.003919, err = 0.188451
+Epoch 11000, loss 0.003965, err = 0.182789
+Epoch 12000, loss 0.003004, err = 0.178247
+Epoch 13000, loss 0.003121, err = 0.173389
+Epoch 14000, loss 0.002953, err = 0.170536
+Epoch 9000, loss 0.003385, err = 0.193301
+Epoch 10000, loss 0.003919, err = 0.188451
+Epoch 11000, loss 0.003965, err = 0.182789
+Epoch 12000, loss 0.003004, err = 0.178247
+Epoch 13000, loss 0.003121, err = 0.173389
+Epoch 14000, loss 0.002953, err = 0.170536
+Epoch 10000, loss 0.003919, err = 0.188451
+Epoch 11000, loss 0.003965, err = 0.182789
+Epoch 12000, loss 0.003004, err = 0.178247
+Epoch 13000, loss 0.003121, err = 0.173389
+Epoch 14000, loss 0.002953, err = 0.170536
+Epoch 13000, loss 0.003121, err = 0.173389
+Epoch 14000, loss 0.002953, err = 0.170536
+Epoch 14000, loss 0.002953, err = 0.170536
+Epoch 15000, loss 0.005814, err = 0.167628
+Epoch 16000, loss 0.003788, err = 0.161913
+Epoch 16000, loss 0.003788, err = 0.161913
+Epoch 17000, loss 0.002777, err = 0.159914
+Epoch 18000, loss 0.002824, err = 0.158056
+Epoch 17000, loss 0.002777, err = 0.159914
+Epoch 18000, loss 0.002824, err = 0.158056
+Epoch 18000, loss 0.002824, err = 0.158056
+Epoch 19000, loss 0.002727, err = 0.153939
+Epoch 20000, loss 0.003191, err = 0.152676
+Epoch 21000, loss 0.002694, err = 0.149257
+Epoch 22000, loss 0.008730, err = 0.160525
+Epoch 23000, loss 0.002750, err = 0.138040
+Epoch 24000, loss 0.002416, err = 0.137442
+Epoch 25000, loss 0.002261, err = 0.130753
+Epoch 26000, loss 0.002097, err = 0.131624
+Epoch 27000, loss 0.001827, err = 0.128435
+Epoch 28000, loss 0.001788, err = 0.125723
+Epoch 29000, loss 0.001749, err = 0.125659
+Epoch 30000, loss 0.002007, err = 0.126426
+Epoch 31000, loss 0.001951, err = 0.126473
+Epoch 32000, loss 0.003210, err = 0.128826
+Epoch 33000, loss 0.001494, err = 0.123286
+Epoch 34000, loss 0.001592, err = 0.123848
+Epoch 35000, loss 0.001380, err = 0.121786
+Epoch 36000, loss 0.001384, err = 0.119738
+Epoch 37000, loss 0.001200, err = 0.118898
+Epoch 38000, loss 0.001254, err = 0.117719
+Epoch 39000, loss 0.001060, err = 0.115400
+Epoch 40000, loss 0.001045, err = 0.114316
+Epoch 41000, loss 0.001016, err = 0.111188
+Epoch 42000, loss 0.000815, err = 0.113277
+Epoch 43000, loss 0.000722, err = 0.115376
+Epoch 44000, loss 0.000893, err = 0.116452
+Epoch 45000, loss 0.000532, err = 0.120587
+Epoch 46000, loss 0.000461, err = 0.122943
+Epoch 47000, loss 0.000401, err = 0.126372
+Epoch 48000, loss 0.000353, err = 0.128497
+Epoch 49000, loss 0.001207, err = 0.128876
+Epoch 50000, loss 0.000287, err = 0.131116
+Backend tkagg is interactive backend. Turning interactive mode on.
+
+============================================================================================================================================
+============================================================================================================================================
+
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation> c: && cd c:\Users\zzh\Desktop\Oxford\dissertation && cmd /C "c:\Users\zzh\Desktop\Oxford\dissertation\.venv\Scripts\python.exe c:\Users\zzh\.vscode\extensions\ms-python.debugpy-2025.0.1-win32-x64\bundled\libs\debugpy\launcher 63711 -- C:\Users\zzh\Desktop\Oxford\dissertation\deeponet\src\schrodinger_self_fourier.py "
+Using backend: pytorch
+Other supported backends: tensorflow.compat.v1, tensorflow, jax, paddle.
+paddle supports more examples now and is recommended.
+2025-03-12 15:02:34.327889: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-03-12 15:02:37.597572: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+x_train : (500, 10), (50,) 
+ y_train: (500, 10, 50)
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=10, out_features=100, bias=True)
+      (1): Linear(in_features=100, out_features=100, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=10, bias=True)
+      (1-2): 2 x Linear(in_features=10, out_features=10, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+) 
+
+X_train shape : ((500, 10), (50,))
+y_train shape (500, 10, 50)
+Dataset generated
+Model: model_schro_multi 
+
+Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+)
+
+Initialized
+Start training
+Epoch 1000, loss 0.099505, err = 0.230656
+Epoch 2000, loss 0.028790, err = 0.070248
+Epoch 3000, loss 0.016631, err = 0.039297
+Epoch 4000, loss 0.019834, err = 0.035736
+Epoch 5000, loss 0.007670, err = 0.016451
+Epoch 6000, loss 0.007129, err = 0.014870
+Epoch 7000, loss 0.008012, err = 0.015925
+Epoch 8000, loss 0.006658, err = 0.013579
+Epoch 9000, loss 0.006561, err = 0.013213
+Epoch 10000, loss 0.007909, err = 0.015629
+Epoch 11000, loss 0.007135, err = 0.014319
+Epoch 12000, loss 0.006484, err = 0.012765
+Epoch 13000, loss 0.006696, err = 0.013081
+Epoch 14000, loss 0.006742, err = 0.012925
+Epoch 15000, loss 0.006908, err = 0.013712
+Epoch 16000, loss 0.006342, err = 0.012484
+Epoch 17000, loss 0.006312, err = 0.012411
+Epoch 18000, loss 0.007283, err = 0.013316
+Epoch 19000, loss 0.007091, err = 0.013967
+Epoch 20000, loss 0.006539, err = 0.012892
+Epoch 21000, loss 0.006492, err = 0.012711
+Epoch 22000, loss 0.006543, err = 0.012844
+Epoch 23000, loss 0.006390, err = 0.012538
+Epoch 24000, loss 0.006596, err = 0.012928
+Epoch 25000, loss 0.006376, err = 0.012508
+Epoch 26000, loss 0.006322, err = 0.012402
+Epoch 27000, loss 0.006492, err = 0.012778
+Epoch 28000, loss 0.002166, err = 0.004581
+Epoch 29000, loss 0.001412, err = 0.003204
+Epoch 30000, loss 0.001077, err = 0.002324
+Epoch 31000, loss 0.001002, err = 0.002076
+Epoch 32000, loss 0.001048, err = 0.002497
+Epoch 33000, loss 0.000747, err = 0.001637
+Epoch 34000, loss 0.001235, err = 0.002437
+Epoch 35000, loss 0.000840, err = 0.001809
+Epoch 36000, loss 0.001062, err = 0.001941
+Epoch 37000, loss 0.000719, err = 0.001535
+Epoch 38000, loss 0.000777, err = 0.001603
+Epoch 39000, loss 0.000644, err = 0.001385
+Epoch 40000, loss 0.000675, err = 0.001468
+Epoch 41000, loss 0.000756, err = 0.001787
+Epoch 42000, loss 0.001136, err = 0.002324
+Epoch 43000, loss 0.001280, err = 0.002848
+Epoch 44000, loss 0.001020, err = 0.001937
+Epoch 45000, loss 0.000627, err = 0.001419
+Epoch 46000, loss 0.000875, err = 0.001842
+Epoch 47000, loss 0.000555, err = 0.001234
+Epoch 48000, loss 0.001027, err = 0.002450
+Epoch 49000, loss 0.000558, err = 0.001227
+Epoch 50000, loss 0.000626, err = 0.001486
+Backend tkagg is interactive backend. Turning interactive mode on.
+
+============================================================================================================================================
+============================================================================================================================================
+
+(.venv) c:\Users\zzh\Desktop\Oxford\dissertation> c: && cd c:\Users\zzh\Desktop\Oxford\dissertation && cmd /C "c:\Users\zzh\Desktop\Oxford\dissertation\.venv\Scripts\python.exe c:\Users\zzh\.vscode\extensions\ms-python.debugpy-2025.0.1-win32-x64\bundled\libs\debugpy\launcher 64140 -- C:\Users\zzh\Desktop\Oxford\dissertation\deeponet\src\schrodinger_self_fourier.py "
+Using backend: pytorch
+Other supported backends: tensorflow.compat.v1, tensorflow, jax, paddle.
+paddle supports more examples now and is recommended.
+2025-03-12 15:36:45.068845: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-03-12 15:36:49.697224: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+x_train : (500, 10), (50,) 
+ y_train: (500, 10, 50)
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=10, out_features=100, bias=True)
+      (1): Linear(in_features=100, out_features=100, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=10, bias=True)
+      (1-2): 2 x Linear(in_features=10, out_features=10, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+) 
+
+X_train shape : ((500, 10), (50,))
+y_train shape (500, 10, 50)
+Dataset generated
+Model: model_schro_multi 
+
+Optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 0
+)
+
+Initialized
+Start training
+Epoch 1000, loss 0.025538, err = 0.024747
+Epoch 2000, loss 0.002786, err = 0.003574
+Epoch 3000, loss 0.001288, err = 0.001799
+Epoch 4000, loss 0.000717, err = 0.001124
+Epoch 5000, loss 0.000494, err = 0.000838
+Epoch 6000, loss 0.001190, err = 0.001725
+Epoch 7000, loss 0.000421, err = 0.000783
+Epoch 8000, loss 0.000302, err = 0.000624
+Epoch 9000, loss 0.000265, err = 0.000581
+Epoch 10000, loss 0.000230, err = 0.000514
+Epoch 11000, loss 0.000208, err = 0.000484
+Epoch 12000, loss 0.000187, err = 0.000459
+Epoch 13000, loss 0.000171, err = 0.000434
+Epoch 14000, loss 0.000158, err = 0.000420
+Epoch 15000, loss 0.000145, err = 0.000407
+Epoch 16000, loss 0.000243, err = 0.000502
+Epoch 17000, loss 0.000115, err = 0.000355
+Epoch 18000, loss 0.000348, err = 0.000586
+Epoch 19000, loss 0.000102, err = 0.000346
+Epoch 20000, loss 0.000102, err = 0.000340
+Epoch 21000, loss 0.000114, err = 0.000364
+Epoch 22000, loss 0.000093, err = 0.000336
+Epoch 23000, loss 0.000089, err = 0.000326
+Epoch 24000, loss 0.000087, err = 0.000326
+Epoch 25000, loss 0.000092, err = 0.000354
+Epoch 26000, loss 0.000104, err = 0.000342
+Epoch 27000, loss 0.000113, err = 0.000359
+Epoch 28000, loss 0.000222, err = 0.000457
+Epoch 29000, loss 0.000093, err = 0.000329
+Epoch 30000, loss 0.000119, err = 0.000355
+Epoch 31000, loss 0.000085, err = 0.000332
+Epoch 32000, loss 0.004659, err = 0.005037
+Epoch 33000, loss 0.000087, err = 0.000340
+Epoch 34000, loss 0.000081, err = 0.000320
+Epoch 35000, loss 0.000081, err = 0.000335
+Epoch 36000, loss 0.000077, err = 0.000316
+Epoch 37000, loss 0.000077, err = 0.000318
+Epoch 38000, loss 0.000075, err = 0.000316
+Epoch 39000, loss 0.000075, err = 0.000310
+Epoch 40000, loss 0.000566, err = 0.000809
+Epoch 41000, loss 0.000074, err = 0.000309
+Epoch 42000, loss 0.000075, err = 0.000291
+Epoch 43000, loss 0.000073, err = 0.000301
+Epoch 44000, loss 0.000073, err = 0.000306
+Epoch 45000, loss 0.000072, err = 0.000302
+Epoch 46000, loss 0.000072, err = 0.000299
+Epoch 47000, loss 0.000072, err = 0.000297
+Epoch 48000, loss 0.000070, err = 0.000295
+Epoch 49000, loss 0.000073, err = 0.000285
+Epoch 50000, loss 0.000070, err = 0.000287
+Backend tkagg is interactive backend. Turning interactive mode on.
+Final complex_mse_loss error rate : 0.000237

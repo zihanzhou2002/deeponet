@@ -1,0 +1,9 @@
+For Schrodinger
+
+Works best so far:
+nx = 10
+net = dde.nn.DeepONetComplex(
+    [nx, 100, 100], [1, 10,10], complex_relu, "Glorot normal"
+)  
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
+=================================================

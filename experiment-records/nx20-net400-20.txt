@@ -1,0 +1,90 @@
+x_train : (500, 20), (500,) 
+ y_train: (500, 20)
+
+DeepONetComplex(
+  (branch): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=20, out_features=400, bias=True)
+      (1): Linear(in_features=400, out_features=400, bias=True)
+    )
+  )
+  (trunk): FNNComplex(
+    (linears): ModuleList(
+      (0): Linear(in_features=1, out_features=20, bias=True)
+      (1): Linear(in_features=20, out_features=20, bias=True)
+    )
+  )
+  (b): ParameterList(  (0): Parameter containing: [torch.complex64 of size 1])
+)
+
+X_train shape : ((500, 20), (500,))
+y_train shape (500, 20)
+Dataset generated
+
+Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.001
+    maximize: False
+    weight_decay: 1e-05
+)
+Initialized
+Start training
+Epoch 1000, loss 0.000976, err = 0.054461
+Epoch 2000, loss 0.000324, err = 0.049183
+Epoch 3000, loss 0.000361, err = 0.046723
+Epoch 4000, loss 0.000175, err = 0.045057
+Epoch 5000, loss 0.000250, err = 0.043913
+Epoch 6000, loss 0.000102, err = 0.042961
+Epoch 7000, loss 0.000137, err = 0.042252
+Epoch 8000, loss 0.000858, err = 0.042539
+Epoch 9000, loss 0.000066, err = 0.041140
+Epoch 10000, loss 0.001552, err = 0.042235
+Epoch 11000, loss 0.000115, err = 0.039965
+Epoch 12000, loss 0.000078, err = 0.039277
+Epoch 13000, loss 0.000314, err = 0.038451
+Epoch 14000, loss 0.000155, err = 0.037530
+Epoch 15000, loss 0.000292, err = 0.036835
+Epoch 16000, loss 0.000046, err = 0.036048
+Epoch 17000, loss 0.000127, err = 0.035554
+Epoch 18000, loss 0.000085, err = 0.035328
+Epoch 19000, loss 0.000165, err = 0.035292
+Epoch 20000, loss 0.000069, err = 0.034704
+Epoch 21000, loss 0.000185, err = 0.034492
+Epoch 22000, loss 0.000065, err = 0.034087
+Epoch 23000, loss 0.000323, err = 0.034234
+Epoch 24000, loss 0.000120, err = 0.033480
+Epoch 25000, loss 0.000041, err = 0.033320
+Epoch 26000, loss 0.000051, err = 0.033139
+Epoch 27000, loss 0.000106, err = 0.033053
+Epoch 28000, loss 0.000134, err = 0.033045
+Epoch 29000, loss 0.000024, err = 0.032743
+Epoch 30000, loss 0.000291, err = 0.032926
+Epoch 31000, loss 0.000065, err = 0.032594
+Epoch 32000, loss 0.000059, err = 0.032389
+Epoch 33000, loss 0.000092, err = 0.032353
+Epoch 34000, loss 0.000052, err = 0.032385
+Epoch 35000, loss 0.000095, err = 0.032181
+Epoch 36000, loss 0.000062, err = 0.032032
+Epoch 37000, loss 0.000074, err = 0.032030
+Epoch 38000, loss 0.000117, err = 0.032088
+Epoch 39000, loss 0.000046, err = 0.031988
+Epoch 40000, loss 0.000104, err = 0.031967
+Epoch 41000, loss 0.000093, err = 0.031733
+Epoch 42000, loss 0.000104, err = 0.032007
+Epoch 43000, loss 0.000035, err = 0.031791
+Epoch 44000, loss 0.000057, err = 0.031858
+Epoch 45000, loss 0.000035, err = 0.031809
+Epoch 46000, loss 0.000084, err = 0.031686
+Epoch 47000, loss 0.000089, err = 0.031706
+Epoch 48000, loss 0.000071, err = 0.031716
+Epoch 49000, loss 0.000105, err = 0.031780
+Epoch 50000, loss 0.000132, err = 0.031679
+Finished Training
+Final error rate : 0.031791

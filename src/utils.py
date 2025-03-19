@@ -5,6 +5,7 @@ from __future__ import print_function
 import sys
 import time
 from functools import wraps
+import deepxde as dde
 
 import numpy as np
 
@@ -53,12 +54,19 @@ def safe_test(model, data, X_test, y_test, fname=None):
     X = X_test
     while is_nonempty(X):
         X_add, X = trim_to_65535(X)
-        y_pred.append(model.predict(data.transform_inputs(X_add)))
+        #y_pred.append(model.predict(data.transform_inputs(X_add)))
+        y_pred.append(model.predict(X_add))
     y_pred = np.vstack(y_pred)
+    
+    #print(f"X_test : {X}")
+    #print(f"y_pred : {y_pred}")
     error = np.mean((y_test - y_pred) ** 2)
-    print("Test MSE: {}".format(error))
+    #print("Test MSE: {}".format(error))
     error = mean_squared_error_outlier(y_test, y_pred)
-    print("Test MSE w/o outliers: {}\n".format(error))
+    #print("Test MSE w/o outliers: {}\n".format(error))
+    
+    error = dde.metrics.l2_relative_error(y_test, y_pred)
+    #print("Test l2 relative error: {}".format(error))
 
     if fname is not None:
         np.savetxt(fname, np.hstack((X_test[1], y_test, y_pred)))
@@ -115,3 +123,4 @@ def make_triple(sensor_value, x, y, num):
     x = x[idx]
     y = y[idx][:, None]
     return np.hstack([np.tile(sensor_value, (num, 1)), x, y])
+

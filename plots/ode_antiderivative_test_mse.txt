@@ -1,0 +1,12 @@
+Testing
+Test MSE: 1.5542153732894803e-06
+Test MSE w/o outliers: 1.3203306252762559e-06
+
+Testing the ODE
+L2relative error: 1.6361819180075002e-07
+Testing the ODE
+L2relative error: 4.0129602956664844e-07
+Testing the ODE
+L2relative error: 5.351750156216523e-07
+Testing the ODE
+L2relative error: 2.8941653294046055e-07

@@ -1,0 +1,30 @@
+Testing
+Test l2 relative error: 0.0031129007693380117
+Testing the ODE
+L2relative error: 0.0017077900008872044
+Testing the ODE
+n't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(save_path)
+Testing
+Test l2 relative error: 0.0031129007693380117
+Testing the ODE
+L2relative error: 0.0017077900008872044
+Testing the ODE
+Testing
+Test l2 relative error: 0.0031129007693380117
+Testing the ODE
+L2relative error: 0.0017077900008872044
+Testing the ODE
+Test l2 relative error: 0.0031129007693380117
+Testing the ODE
+L2relative error: 0.0017077900008872044
+Testing the ODE
+L2relative error: 0.0017077900008872044
+Testing the ODE
+Testing the ODE
+L2relative error: 0.001447009785314029
+L2relative error: 0.001447009785314029
+Testing the ODE
+L2relative error: 0.004616539687295632
+Testing the ODE
+L2relative error: 0.009628961929850877

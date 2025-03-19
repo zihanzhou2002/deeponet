@@ -63,11 +63,12 @@ class ODESystem(object):
     def gen_operator_data(self, space, m, num):
         print("Generating operator data...", flush=True)
         features = space.random(num)
-        sensors = np.linspace(0, self.T, num=m)[:, None]
+        sensors = np.linspace(0, self.T, num=m)[:, None] 
         sensor_values = space.eval_u(features, sensors)
-        x = self.T * np.random.rand(num)[:, None]
+        x = self.T * np.random.rand(num)[:, None] 
         y = self.eval_s_space(space, features, x)
-        return [sensor_values, x], y
+        #return [sensor_values, x], y
+        return (sensor_values.astype(np.float32), x.astype(np.float32)), y.astype(np.float32)
 
     def eval_s_space(self, space, features, x):
         """For a list of functions in `space` represented by `features`
@@ -95,7 +96,9 @@ class ODESystem(object):
             return self.g(y, u(t), t)
 
         sol = solve_ivp(f, [0, tf], self.s0, method="RK45")
-        return sol.y[0, -1:]
+        print(f'solutions to ode {sol}')
+        #return sol.y[0, -1:]
+        return sol.y[:,-1] # returning both components
 
 
 class DRSystem(object):
@@ -319,3 +322,39 @@ class ADVDSystem(object):
             len(sensor_value),
             Nt_pc,
         )[2][:, 0:Nt_pc:10]
+
+
+def main():
+    system = ODESystem()
+    T = 1
+    # Harmonic Oscillator
+    omega = 2
+    p0 = 1
+    q0 = 0
+    harm_oscil_params = [omega, p0, q0]
+    X_train, y_train = ODESystem(T, system_params = harm_oscil_params)
+    space = GRF(1, length_scale=0.2, N=1000, interp="cubic")
+    m = 100
+    num_train = 100
+    X_train, y_train = system.gen_operator_data(space, m, num_train)
+
+    curr_dir = os.path.getcwd()
+    file_path = os.path.join(curr_dir, f"data\\ODE_harm_train_{num_train}.npz")
+
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+
+    np.savez(file_path, X=X_train,y=y_train)
+
+    import numpy as np
+    d = np.load("data\\ODE_harm_train_{num_train}.npz", allow_pickle=True)
+    X_train = (d["X"][0].astype(np.float32), d["X"][1].astype(np.float32))
+    y_train = d["y"].astype(np.float32)
+
+
+    print(X_train)
+    print(np.shape(X_train[0]))
+    print(np.shape(X_train[1]))
+
+if __name__ == "main":
+    main()
