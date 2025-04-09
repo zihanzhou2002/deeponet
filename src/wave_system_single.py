@@ -4,12 +4,27 @@ from scipy.linalg import dft
 import matplotlib.pyplot as plt
 from matplotlib import cm
 # ============================================================================================
-# Functions for solving wave equation
+# Functions for solving wave equation, producing a single vector output [u(x_1), ..., u(x_N), v(x_1), ... , v(x_N)]
 # ============================================================================================
 
 def solve_wave_single(u0, v0, c, t_ind, Nt, Nx = 100, L = 10.0, T = 1.0):
-   
-   # Number of spatial points
+    """_summary_
+
+    Args:
+        u0 (_type_): _description_
+        v0 (_type_): _description_
+        c (_type_): _description_
+        t_ind (_type_): _description_
+        Nt (_type_): _description_
+        Nx (int, optional): _description_. Defaults to 100.
+        L (float, optional): _description_. Defaults to 10.0.
+        T (float, optional): _description_. Defaults to 1.0.
+
+    Returns:
+        _type_: _description_
+    """
+    
+    # Number of spatial points
     dx = L / (Nx - 1)  # Spatial step
     x = np.linspace(0, L, Nx)  # Spatial grid
 
