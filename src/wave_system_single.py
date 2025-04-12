@@ -3,6 +3,8 @@ from scipy.fft import fft, ifft, fftfreq
 from scipy.linalg import dft
 import matplotlib.pyplot as plt
 from matplotlib import cm
+
+from spaces import FinitePowerSeries, FiniteChebyshev, GRF
 # ============================================================================================
 # Functions for solving wave equation, producing a single vector output [u(x_1), ..., u(x_N), v(x_1), ... , v(x_N)]
 # ============================================================================================
@@ -131,14 +133,14 @@ def solve_wave_whole(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500):
 
 
 
-def solve_wave_single_fourier(u0, v0, c, t_ind, Nt, Nx = 100, L = 10.0, T = 1.0):
+def solve_wave_single_fourier_FE(u0, v0, c, t_ind, Nt, Nx = 100, L = 10.0, T = 1.0):
    
    # Number of spatial points
     dx = L / (Nx - 1)  # Spatial step
     x = np.linspace(0, L, Nx)  # Spatial grid
 
     # Number of time steps
-    dt = T / Nt  # Time step
+    dt = T / (Nt - 1)  # Time step
     t = np.linspace(0, T, Nt)  
 
     # Stability condition: CFL number
@@ -170,16 +172,60 @@ def solve_wave_single_fourier(u0, v0, c, t_ind, Nt, Nx = 100, L = 10.0, T = 1.0)
     
     return result
 
-
-
-def solve_wave_whole_fourier(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500):
+def solve_wave_single_fourier_exact(u0, v0, c, t_ind, Nt, Nx = 100, L = 10.0, T = 1.0):
    
    # Number of spatial points
-    dx = L / Nx   # Spatial step
+    dx = L / (Nx - 1)  # Spatial step
     x = np.linspace(0, L, Nx)  # Spatial grid
 
     # Number of time steps
-    dt = T / Nt  # Time step
+    dt = T / (Nt - 1)  # Time step
+    t = np.linspace(0, T, Nt)  
+
+    # Stability condition: CFL number
+
+
+    # Initialize solution vectors
+    #u = np.exp(-((x - x0) ** 2 / (2.0 * sigma**2))) # Initial condition (Gaussian pulse)
+    #v = np.zeros_like(u)  # Initial velocity is zero
+    k = 2 * np.pi * fftfreq(Nx, d=dx) 
+
+    # Initialize solution vectors
+    u0_hat = fft(u0)# Initial condition (Gaussian pulse)
+    v0_hat = fft(v0) # Initial velocity is zero
+    
+    # Store results for visualization
+    us_hat = np.zeros(Nx, dtype=np.complex128)
+    vs_hat = np.zeros(Nx, dtype=np.complex128)
+    
+
+    
+
+    for i in range(Nx):
+        # Compute second spatial derivative using central difference
+        u0 = u0_hat[i]
+        v0 = v0_hat[i]
+        
+        u_hat = u0 / 2 * (np.exp(1j*c*k[i] * t[t_ind]) + np.exp( -1j*c*k[i] * t[t_ind]))
+        v_hat = u0 / 2 * (1j*c*k[i]* np.exp(1j*c*k[i] * t[t_ind]) - 1j*c* k[i] *np.exp( -1j*c*k[i] * t[t_ind]))
+        us_hat[i] = u_hat
+        vs_hat[i] = v_hat
+
+    
+    result = np.stack((us_hat, vs_hat), axis=1)
+
+    
+    return result
+
+
+def solve_wave_whole_fourier_FE(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500):
+   
+   # Number of spatial points
+    dx = L / (Nx - 1)   # Spatial step
+    x = np.linspace(0, L, Nx)  # Spatial grid
+
+    # Number of time steps
+    dt = T / (Nt - 1)  # Time step
     t = np.linspace(0, T, Nt)
     
     # Wave number
@@ -207,6 +253,84 @@ def solve_wave_whole_fourier(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500):
     result = np.stack((us_hat, vs_hat), axis=2)
     return result
 
+
+def solve_wave_whole_fourier_exact(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500):
+   
+   # Number of spatial points
+    dx = L / (Nx  - 1)    # Spatial step
+    x = np.linspace(0, L, Nx)  # Spatial grid
+
+    # Number of time steps
+    dt = T / (Nt - 1)  # Time step
+    t = np.linspace(0, T, Nt)
+    
+    # Wave number
+    k = 2 * np.pi * fftfreq(Nx, d = dx) 
+
+    # Initialize solution vectors
+    u_hat_0 = fft(u0)# Initial condition (Gaussian pulse)
+    v_hat_0 = fft(v0) # Initial velocity is zero
+    
+    # Store results for visualization
+    us_hat = np.zeros((Nt, Nx), dtype=np.complex128)
+    vs_hat = np.zeros((Nt, Nx), dtype=np.complex128)
+
+    us_hat[0] = u_hat_0
+    vs_hat[0] = v_hat_0
+    
+    
+    for i in range(Nx):
+        # Compute second spatial derivative using central difference
+        
+        u0 = us_hat[0, i]
+        v0 = vs_hat[0, i]
+        
+        u_hat = u0 / 2 * (np.exp(1j*c*k[i] * t) + np.exp( -1j*c*k[i] * t))
+        v_hat = u0 / 2 * (1j*c*k[i]* np.exp(1j*c*k[i] * t) - 1j*c* k[i] *np.exp( -1j*c*k[i] * t))
+        us_hat[:, i] = u_hat
+        vs_hat[:, i] = v_hat
+    
+    
+    result = np.stack((us_hat, vs_hat), axis=2)
+    return result
+
+def solve_wave_whole_fourier_CK(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500):
+   
+   # Number of spatial points
+    dx = L / (Nx - 1)    # Spatial step
+    x = np.linspace(0, L, Nx)  # Spatial grid
+
+    # Number of time steps
+    dt = T / (Nt - 1)   # Time step
+    t = np.linspace(0, T, Nt)
+    
+    # Wave number
+    k = 2 * np.pi * fftfreq(Nx, d = dx) 
+
+    # Initialize solution vectors
+    u_hat = fft(u0)# Initial condition (Gaussian pulse)
+    v_hat = fft(v0) # Initial velocity is zero
+    
+    # Store results for visualization
+    us_hat = np.zeros((Nt, Nx), dtype=np.complex128)
+    vs_hat = np.zeros((Nt, Nx), dtype=np.complex128)
+
+ 
+    for i in range(Nt):
+        # Compute second spatial derivative using central difference
+        us_hat[i] = u_hat
+        vs_hat[i] = v_hat
+        
+        rk = (c*k)**2
+        lk = (dt**2) / 4 * rk
+    
+        v_hat = ((1 - lk)*v_hat - dt * rk * u_hat)  / (1 + lk)
+        u_hat = ((1 - lk)*u_hat + dt * v_hat)  / (1 + lk)
+
+    
+    result = np.stack((us_hat, vs_hat), axis=2)
+    return result
+
 # ============================================================================================
 # Functions for generating triplet datasets
 # ============================================================================================
@@ -227,8 +351,8 @@ def gen_wave_dataset_rand_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, 
             - y (num, sensors): the entire dynamic u(x, t) with [[u_1(x, t_1)], ..., [u_num(x, t_num)]]
     """
     # Specify constants
-    dx = x_max / Nx
-    x     = np.arange(0, x_max, dx)       # spatial grid points
+    dx = x_max / (Nx - 1)
+    x     = np.linspace(0, x_max, Nx)       # spatial grid points
     hbar = 1
 
     # Range of randomized sigmas and x0s
@@ -289,9 +413,8 @@ def gen_wave_fourier_rand_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, 
             - y (num, sensors): the entire dynamic u(x, t) with [[u_1(x, t_1)], ..., [u_num(x, t_num)]]
     """
     # Specify constants
-    dx = x_max / Nx
-    x     = np.arange(0, x_max, dx)       # spatial grid points
-    hbar = 1
+    dx = x_max / (Nx - 1)
+    x     = np.linspace(0, x_max, Nx)       # spatial grid points
 
     # Range of randomized sigmas and x0s
     sigma_min = 0.2
@@ -325,7 +448,58 @@ def gen_wave_fourier_rand_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, 
         initial_data[i][0: Nx] = fft(u0)
         initial_data[i][Nx: ] = fft(v0)
         # Initial Wavefunction
-        sol = solve_wave_single_fourier(u0=u0, v0=v0, t_ind = t_ind, Nt=Nt, c= c, Nx = Nx, L=x_max, T = tf)
+        sol = solve_wave_single_fourier_exact(u0=u0, v0=v0, t_ind = t_ind, Nt=Nt, c= c, Nx = Nx, L=x_max, T = tf)
+
+        y_data[i][0 : Nx] = sol[:, 0]
+        y_data[i][Nx : ] = sol[:, 1]
+    
+    
+    return (initial_data, t_points), y_data
+
+
+
+def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, tf=1):
+    """ Generate random initial conditions and their corresponding behaviour at different times
+
+    Args:
+        num (int, optional): Number of timesteps. Defaults to 200.
+        sensors (int, optional): Number of satial locations. Defaults to 500.
+        t0 (int, optional): lower bound of time domain. Defaults to 0.
+        tf (int, optional): upper bound of time domain. Defaults to 1.
+
+    Returns:
+        (X_func, X_loc), y: 
+            - X_func of shape (num, sensors): different initial conditions [[u_1(x, 0)], [u_2(x, 0)], ... [u_num(x, 0)]]
+            - X_loc of shape (num, ): time steps  t_1, ..., t_num to be evaluated on
+            - y (num, sensors): the entire dynamic u(x, t) with [[u_1(x, t_1)], ..., [u_num(x, t_num)]]
+    """
+    # Specify constants
+    dx = x_max / Nx
+    x     = np.linspace(0, x_max, Nx)   # spatial grid points
+    c = 1.0
+    # Range of randomized sigmas and x0s
+    space = GRF(x_max, kernel="RBF", length_scale=0.1, N=Nx, interp="cubic")
+    u0s = space.random(40)
+    
+    t = np.linspace(0, tf, Nt)
+    
+    # Generate sets of random sigmas, x0s, ts
+    t_inds = np.random.choice(np.arange(Nt), size = num)
+
+    t_points = t[t_inds]
+    
+    # Generating Datasets
+    initial_data = np.zeros((num, Nx*2),dtype=np.complex128)
+    y_data = np.zeros((num, Nx*2),dtype=np.complex128)
+    
+    for i in range(num):
+        u0 = u0s[i]# Initial condition (Gaussian pulse)
+        v0 = np.zeros_like(u0)  # Initial velocity is zero
+        t_ind = t_inds[i]
+        initial_data[i][0: Nx] = fft(u0)
+        initial_data[i][Nx: ] = fft(v0)
+        # Initial Wavefunction
+        sol = solve_wave_single_fourier_exact(u0=u0, v0=v0, t_ind = t_ind, Nt=Nt, c= c, Nx = Nx, L=x_max, T = tf)
 
         y_data[i][0 : Nx] = sol[:, 0]
         y_data[i][Nx : ] = sol[:, 1]
@@ -336,7 +510,7 @@ def gen_wave_fourier_rand_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, 
 
 
 def gen_wave_dataset_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, Nx= 500, x_max = 10, tf=1):
-    """ Generate random initial conditions and their corresponding behaviour at different times
+    """ Generate fixed initial conditions and their corresponding behaviour at different times
 
     Args:
         num (int, optional): Number of timesteps. Defaults to 200.
@@ -383,7 +557,7 @@ def gen_wave_dataset_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, N
 
 
 def gen_wave_fourier_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, Nx= 500, x_max = 10, tf=1):
-    """ Generate random initial conditions and their corresponding behaviour at different times
+    """ Generate fixed initial conditions and their corresponding behaviour at different times
 
     Args:
         num (int, optional): Number of timesteps. Defaults to 200.
@@ -398,18 +572,24 @@ def gen_wave_fourier_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, N
             - y (num, sensors): the entire dynamic u(x, t) with [[u_1(x, t_1)], ..., [u_num(x, t_num)]]
     """
     # Specify constants
-    dx = x_max / Nx
+    dx = x_max / (Nx - 1) 
     x     = np.linspace(0, x_max, Nx)       # spatial grid points
 
     
     Nt = num
-    t = np.linspace(0, tf, Nt)
-    
-    # Wave numbers
-    k = 2 * np.pi * fftfreq(Nx, d=dx)  
+    dt = tf / Nt
+    t = np.arange(0, tf, dt)
+    u0 = np.zeros(Nx, dtype=np.complex128)
+    def init_fn(x, x0, sigma):
+        val = np.exp(-((x - x0)**2)/sigma)
+        if val<.001:
+            return 0.0
+        else:
+            return val
     
     # Generate sets of random sigmas, x0s, ts
-    u0 = np.exp(-((x - x0) ** 2 / (2.0 * sigma**2))) 
+    for a in range(Nx):
+        u0[a]=init_fn(x[a], x0, sigma)
 
     v0 = np.zeros_like(u0)  # Initial velocity is zero
     initial = np.hstack((fft(u0), fft(v0)))
@@ -421,7 +601,7 @@ def gen_wave_fourier_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, N
     #y_data = np.zeros((num, Nx, 2),dtype=np.complex128)
     
     # Initial Wavefunction
-    sol = solve_wave_whole_fourier(u0 = u0, v0 = v0 ,c = c, L = x_max, T = tf, Nx = Nx, Nt = Nt)
+    sol = solve_wave_whole_fourier_exact(u0 = u0, v0 = v0 ,c = c, L = x_max, T = tf, Nx = Nx, Nt = Nt)
     for i in range (num):
         y_data[i][0: Nx] = sol[i, :, 0]
         y_data[i][Nx :] = sol[i, :, 1]
@@ -488,8 +668,8 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     
     nx = int(np.shape(y_pred)[1] / 2)
     dx = x_max / nx
-    k = (2 * np.pi / x_max) * fftfreq(nx, dx)  # Correct physical frequencies
-
+    #k = (2 * np.pi / x_max) * fftfreq(nx, dx)  # Correct physical frequencies
+    k = 2 * np.pi * fftfreq(nx, dx)
     
     W = dft(nx)
     W_inv = W.conj().T / nx
@@ -500,8 +680,8 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     D = np.diag(1j * k)
     D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
     
-    y_pred_x = y_pred@D_large.conj().T
-    y_true_x = y_true@D_large.conj().T
+    #y_pred_x = y_pred@D_large.conj().T
+    #y_true_x = y_true@D_large.conj().T
     
     y_pred_x_sol = y_pred@D_large.conj().T@W_large_inv.conj().T
     y_true_x_sol = y_true@D_large.conj().T@W_large_inv.conj().T
@@ -513,12 +693,90 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     energy_pred = dx*np.array([np.sum(c**2*y[0: nx]**2) + np.sum(y[nx :]**2) for y in y_pred_x_sol])
     energy_true = dx*np.array([np.sum(c**2*y[0: nx]**2) + np.sum(y[nx :]**2) for y in y_true_x_sol])
     # Plot predicted solution
-    plt.plot(t, energy_pred, label='predicted energies')
-    plt.plot(t, energy_true, label='actual energies')
-    plt.ylim(-20, 20)
+    plt.plot(t, energy_pred, label='predicted energy')
+    plt.plot(t, energy_true, label='actual energy')
+    plt.grid(True)
+    plt.ylim(-10, 10)
     plt.xlabel("Time")
     plt.ylabel("Energy")
     plt.legend()
-    plt.title("Total Probability over Time")
+    plt.title("Total Energy over Time")
     plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_energy_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
     plt.show()
+    
+    
+    
+def main():
+    nx = 100
+    L = 10
+    T = 2.0
+    c = 1
+    num= 41
+    
+    X_train, y_train = gen_wave_fourier_rand_fixed_speed(num = num, Nx = nx, x_max= L, tf=T)
+    X_test_fixed, y_test_fixed = gen_wave_fourier_init_fixed_speed(num = num, Nx = nx, x_max = L, tf = T)
+    nx = int(np.shape(y_test_fixed)[1] / 2)
+    
+     # Correct physical frequencies
+     
+    nt = len(y_test_fixed)
+    
+    dx = L / (nx - 1)
+    dt = T / (nt - 1)
+    x = np.linspace(0, L, nx)
+    t = np.linspace(0, T, nt)   
+    
+    k = (2 * np.pi) * fftfreq(nx, dx) 
+    x_grid, t_grid  = np.meshgrid(x, t)
+    
+    i = 9
+    
+    plt.plot(x, X_train[0][i, :nx], label="initial condition")
+    plt.plot(x, y_train[i,:nx], label = "after certain time")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    W = dft(nx)
+    W_inv = W.conj().T / nx
+    
+    W_large = np.kron(np.eye(2), W)
+    W_large_inv = np.kron(np.eye(2), W_inv)
+    #print(f"W inv{W_large_inv.shape}")
+    #print(f"y_pred {y_pred.shape}")
+    y_true_sol = y_test_fixed@W_large_inv.conj().T
+
+    
+    fig, ax = plt.subplots(1, 1, subplot_kw={'projection': '3d'})
+    ax.plot_surface(x_grid, t_grid, y_true_sol[:, 0: nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
+    plt.show()
+    plt.close()
+    
+
+    # Construct differentiation matrix
+    D = np.diag(1j * k)
+    D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
+
+    
+    y_true_x_sol = y_test_fixed@D_large.conj().T@W_large_inv.conj().T
+    
+    fig = plt.figure()
+
+    x_grid, t_grid  = np.meshgrid(x, t)
+    
+    energy_true = dx*np.array([np.sum(c**2*np.abs(y[0: nx])**2) + np.sum(np.abs(y[nx :])**2) for y in y_true_x_sol])
+    
+    
+    # Plot predicted solution
+    plt.plot(t, energy_true, label='actual energies')
+    plt.xlabel("Time")
+    plt.ylabel("Energy")
+    plt.legend()
+    plt.title("Total Energy over Time")
+    #plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_energy_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.show()
+    
+    print("Finished")
+
+if __name__ == "__main__":
+    main()
