@@ -31,7 +31,7 @@ def solve_wave_single(u0, v0, c, t_ind, Nt, Nx = 100, L = 10.0, T = 1.0):
     x = np.linspace(0, L, Nx)  # Spatial grid
 
     # Number of time steps
-    dt = T / Nt  # Time step
+    dt = T / (Nt - 1)  # Time step
     t = np.linspace(0, T, Nt)  
 
     # Stability condition: CFL number
@@ -85,7 +85,7 @@ def solve_wave_whole(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500):
     x = np.linspace(0, L, Nx)  # Spatial grid
 
     # Number of time steps
-    dt = T / Nt  # Time step
+    dt = T / (Nt - 1)  # Time step
     t = np.linspace(0, T, Nt)
     
 
@@ -209,7 +209,7 @@ def solve_wave_single_fourier_exact(u0, v0, c, t_ind, Nt, Nx = 100, L = 10.0, T 
         u_hat = u0 / 2 * (np.exp(1j*c*k[i] * t[t_ind]) + np.exp( -1j*c*k[i] * t[t_ind]))
         v_hat = u0 / 2 * (1j*c*k[i]* np.exp(1j*c*k[i] * t[t_ind]) - 1j*c* k[i] *np.exp( -1j*c*k[i] * t[t_ind]))
         us_hat[i] = u_hat
-        vs_hat[i] = v_hat
+        vs_hat[i] = v_hat 
 
     
     result = np.stack((us_hat, vs_hat), axis=1)
@@ -268,7 +268,7 @@ def solve_wave_whole_fourier_exact(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 5
     k = 2 * np.pi * fftfreq(Nx, d = dx) 
 
     # Initialize solution vectors
-    u_hat_0 = fft(u0)# Initial condition (Gaussian pulse)
+    u_hat_0 = fft(u0) # Initial condition (Gaussian pulse)
     v_hat_0 = fft(v0) # Initial velocity is zero
     
     # Store results for visualization
@@ -414,7 +414,7 @@ def gen_wave_fourier_rand_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, 
     """
     # Specify constants
     dx = x_max / (Nx - 1)
-    x     = np.linspace(0, x_max, Nx)       # spatial grid points
+    x = np.linspace(0, x_max, Nx)       # spatial grid points
 
     # Range of randomized sigmas and x0s
     sigma_min = 0.2
@@ -474,12 +474,12 @@ def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 
             - y (num, sensors): the entire dynamic u(x, t) with [[u_1(x, t_1)], ..., [u_num(x, t_num)]]
     """
     # Specify constants
-    dx = x_max / Nx
-    x     = np.linspace(0, x_max, Nx)   # spatial grid points
+    dx = x_max / (Nx - 1)
+    x = np.linspace(0, x_max, Nx)   # spatial grid points
     c = 1.0
     # Range of randomized sigmas and x0s
     space = GRF(x_max, kernel="RBF", length_scale=0.1, N=Nx, interp="cubic")
-    u0s = space.random(40)
+    u0s = space.random(num)
     
     t = np.linspace(0, tf, Nt)
     
@@ -508,6 +508,52 @@ def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 
     return (initial_data, t_points), y_data
 
 
+def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_max = 10, tf=1):
+    """ Generate random initial conditions for multiple times
+
+    Args:
+        num (int, optional): Number of timesteps. Defaults to 200.
+        sensors (int, optional): Number of satial locations. Defaults to 500.
+        t0 (int, optional): lower bound of time domain. Defaults to 0.
+        tf (int, optional): upper bound of time domain. Defaults to 1.
+
+    Returns:
+        (X_func, X_loc), y: 
+            - X_func of shape (num, sensors): different initial conditions [[u_1(x, 0)], [u_2(x, 0)], ... [u_num(x, 0)]]
+            - X_loc of shape (num, ): time steps  t_1, ..., t_num to be evaluated on
+            - y (num, sensors): the entire dynamic u(x, t) with [[u_1(x, t_1)], ..., [u_num(x, t_num)]]
+    """
+    # Specify constants
+    dx = x_max / (Nx - 1)
+    x = np.linspace(0, x_max, Nx)   # spatial grid points
+    c = 1.0
+    # Range of randomized sigmas and x0s
+    space = GRF(x_max, kernel="RBF", length_scale=0.1, N=Nx, interp="cubic")
+    u0s = space.random(Nu)
+    
+    ts = np.linspace(0, tf, Nt)
+
+    
+    # Generating Datasets
+    initial_data = np.zeros((Nu, 2*Nx),dtype=np.complex128)
+    y_data = np.zeros((Nu, 2*Nx, Nt),dtype=np.complex128)
+    
+    for i in range(Nu):
+        u0 = u0s[i]# Initial condition (Gaussian pulse)
+        v0 = np.zeros_like(u0)  # Initial velocity is zero
+        initial_data[i][0: Nx] = fft(u0)
+        initial_data[i][Nx: ] = fft(v0)
+        
+        # Initial Wavefunction
+        sol = solve_wave_whole_fourier_exact(u0=u0, v0=v0, Nt=Nt, c = c, Nx = Nx, L=x_max, T = tf)
+
+        y_data[i, 0 : Nx,:] = np.transpose(sol[:,:, 0]) 
+        y_data[i, Nx :, :] = np.transpose(sol[:,:, 1])
+    
+    
+    return (initial_data, ts), y_data
+
+
 
 def gen_wave_dataset_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, Nx= 500, x_max = 10, tf=1):
     """ Generate fixed initial conditions and their corresponding behaviour at different times
@@ -525,7 +571,7 @@ def gen_wave_dataset_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, N
             - y (num, sensors): the entire dynamic u(x, t) with [[u_1(x, t_1)], ..., [u_num(x, t_num)]]
     """
     # Specify constants
-    dx = x_max / Nx
+    dx = x_max / (Nx - 1)
     x     = np.linspace(0, x_max, Nx)       # spatial grid points
 
     
@@ -635,7 +681,7 @@ def plot_wave_3d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     W = dft(nx)
     W_inv = W.conj().T / nx
     
-    W_large = np.kron(np.eye(2), W)
+    #W_large = np.kron(np.eye(2), W)
     W_large_inv = np.kron(np.eye(2), W_inv)
     #print(f"W inv{W_large_inv.shape}")
     #print(f"y_pred {y_pred.shape}")
@@ -652,9 +698,57 @@ def plot_wave_3d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     ax2.plot_surface(x_grid, t_grid, y_true_sol[:, 0 : nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
     ax2.set_title("Groundtruth Solution")
 
-    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_3d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
     plt.show()
     
+def plot_wave_2d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
+    """ Plot the 3D plots of wave Equations. y_pred, y_true of the shape (nt, nx)
+
+    Args:
+        y_pred (nt, nx): predicted solution
+        y_true (nt, nx): actual solution
+        x_max (float): upper bound of spatial domain. Defaults to 10.
+        T (float): upper bound of temporal domain. Defaults to 1.
+    """
+    nx = int(np.shape(y_true)[1] / 2)
+    nt = len(y_true)
+    x = np.linspace(0, x_max, nx)
+    t = np.linspace(0, T, nt)   
+    x_grid, t_grid  = np.meshgrid(x, t)
+    
+    W = dft(nx)
+    W_inv = W.conj().T / nx
+    
+    #W_large = np.kron(np.eye(2), W)
+    W_large_inv = np.kron(np.eye(2), W_inv)
+    #print(f"W inv{W_large_inv.shape}")
+    #print(f"y_pred {y_pred.shape}")
+    if "multi" in model.__name__:
+        y_pred_sol = W_large_inv@y_pred
+        y_true_sol = W_large_inv@y_true
+        y_pred_sol = np.transpose(y_pred_sol)
+        y_true_sol = np.transpose(y_true_sol)
+    else:
+        y_pred_sol = y_pred@W_large_inv.conj().T
+        y_true_sol = y_true@W_large_inv.conj().T
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+    
+    absmax = np.max(np.max(np.abs(y_true_sol[0:nx, :]), np.max(np.abs(y_pred_sol[0:nx, :]))))
+    absmax = np.max(absmax, 1e-10)
+    
+    pcm = ax1.pcolormesh(x_grid, t_grid, y_true_sol[0:nx, :].T.real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
+    ax1.set_title("Groundtruth Solution")
+    
+    pcm = ax2.pcolormesh(x_grid, t_grid, y_pred_sol[0:nx, :].T.real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
+    ax2.set_title("Predicted Solution")
+    
+    fig.colorbar(pcm, ax=ax2)  # optional: shows the color scale
+    plt.xlabel("x")
+    plt.ylabel("t")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_2d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.show()
+
     
 def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1):
     """ Plot the 3D plots of Schrodinger's Equations. y_pred, y_true of the shape (nt, nx)
@@ -707,19 +801,20 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     
     
 def main():
-    nx = 100
+    num = 201
+    nx = 101
     L = 10
     T = 2.0
     c = 1
-    num= 41
+    nt = 41
     
-    X_train, y_train = gen_wave_fourier_rand_fixed_speed(num = num, Nx = nx, x_max= L, tf=T)
-    X_test_fixed, y_test_fixed = gen_wave_fourier_init_fixed_speed(num = num, Nx = nx, x_max = L, tf = T)
+    X_train, y_train = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = num, Nx = nx, Nt = nt, x_max = L, tf = T)
+    X_test_fixed, y_test_fixed = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 1, Nt = nt, Nx = nx, x_max = L, tf = T)
     nx = int(np.shape(y_test_fixed)[1] / 2)
     
      # Correct physical frequencies
      
-    nt = len(y_test_fixed)
+    nt = y_test_fixed.shape[2]
     
     dx = L / (nx - 1)
     dt = T / (nt - 1)
@@ -732,7 +827,7 @@ def main():
     i = 9
     
     plt.plot(x, X_train[0][i, :nx], label="initial condition")
-    plt.plot(x, y_train[i,:nx], label = "after certain time")
+    plt.plot(x, y_train[i,:nx, 10], label = "after certain time")
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -744,27 +839,37 @@ def main():
     W_large_inv = np.kron(np.eye(2), W_inv)
     #print(f"W inv{W_large_inv.shape}")
     #print(f"y_pred {y_pred.shape}")
-    y_true_sol = y_test_fixed@W_large_inv.conj().T
+    #y_true_sol = y_test_fixed@W_large_inv.conj().T # for single
+    y_true_sol = W_large_inv@y_test_fixed[0] # for whole
 
     
     fig, ax = plt.subplots(1, 1, subplot_kw={'projection': '3d'})
-    ax.plot_surface(x_grid, t_grid, y_true_sol[:, 0: nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
+    ax.plot_surface(x_grid, t_grid, np.transpose(y_true_sol[0: nx, :]), rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
     plt.show()
     plt.close()
     
 
+    fig, ax = plt.subplots()
+    pcm = ax.pcolormesh(x_grid, t_grid, y_true_sol[0:nx, :].T.real, shading='auto', cmap= cm.coolwarm)
+    fig.colorbar(pcm, ax=ax)  # optional: shows the color scale
+    plt.xlabel("x")
+    plt.ylabel("t")
+    plt.title("Solution Heatmap")
+    plt.show()
+    plt.close()
     # Construct differentiation matrix
     D = np.diag(1j * k)
     D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
 
     
-    y_true_x_sol = y_test_fixed@D_large.conj().T@W_large_inv.conj().T
+    #y_true_x_sol = y_test_fixed@D_large.conj().T@W_large_inv.conj().T
+    y_true_x_sol = W_large_inv@D_large@y_test_fixed[0]
     
     fig = plt.figure()
 
     x_grid, t_grid  = np.meshgrid(x, t)
     
-    energy_true = dx*np.array([np.sum(c**2*np.abs(y[0: nx])**2) + np.sum(np.abs(y[nx :])**2) for y in y_true_x_sol])
+    energy_true = dx*np.array([np.sum(c**2*np.abs(y_true_x_sol[0: nx, i])**2) + np.sum(np.abs(y_true_x_sol[nx :, i])**2) for i in range(nt)])
     
     
     # Plot predicted solution
