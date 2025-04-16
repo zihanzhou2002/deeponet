@@ -2,6 +2,7 @@ from scipy import integrate
 from scipy import sparse
 from scipy.fft import fft, ifft
 import scipy
+from spaces import *
 
 import matplotlib.pyplot as plt
 from matplotlib import animation
@@ -231,6 +232,85 @@ def gen_schro_dataset_rand(num = 200, sensors= 500, x_max = 10, potential = "zer
 
 
 def gen_schro_fourier_rand(num = 200, sensors= 500, x_max = 10, potential = "zero", t0=0,tf=1):
+    """ Generate random initial conditions and their DFT at different time steps
+
+    Args:
+        num (int, optional): Number of timesteps. Defaults to 200.
+        sensors (int, optional): Number of satial locations. Defaults to 500.
+        t0 (int, optional): lower bound of time domain. Defaults to 0.
+        tf (int, optional): upper bound of time domain. Defaults to 1.
+
+    Returns:
+        (X_func, X_loc), y: 
+            - X_func of shape (num, sensors): different initial conditions [[u_1^hat(x, 0)], [u_2^hat(x, 0)], ... [u_num^hat(x, 0)]]
+            - X_loc of shape (num, ): time steps  t_1, ..., t_num to be evaluated on
+            - y (num, sensors): the entire dynamic u(x, t) with [[u_1^hat(x, t_1)], ..., [u_num^hat(x, t_num)]]
+    """
+    # Specify constants
+    dx = x_max / sensors
+    x     = np.arange(0, 10, dx)       # spatial grid points
+    kx    = 0.1                        # wave number
+    m     = 0.5                          # mass
+    hbar = 1
+    
+    # Range of randomized sigmas and x0s
+    sigma_min = 0.2
+    sigma_max = 2.0
+    
+    x0_min = 1.0
+    x0_max = 9.0
+    
+    
+    # Potential V(x)
+    x_Vmin = 5         # center of V(x)
+    T      = 1           # peroid of SHO 
+
+    # For RHS
+    omega = 2 * np.pi / T
+    k = omega**2 * m
+    V = x * 0
+    
+    if potential == "quadratic":
+        V = 0.5 * k * (x - x_Vmin)**2
+    
+    
+    D2 = sparse.diags([1, -2, 1], [-1, 0, 1], shape=(x.size, x.size)) / dx**2
+    
+    # Define psi_t
+    def psi_t(t, psi):
+        return -1j * (- 0.5 * hbar / m * D2.dot(psi) + V / hbar * psi)
+    
+    
+    # Generate sets of random sigmas, x0s, ts
+    sigmas = np.random.uniform(sigma_min, sigma_max, size=num)
+    x0s = np.random.uniform(x0_min, x0_max, size= num)
+    ts = np.random.uniform(t0, tf, num)
+    
+    # Generating Datasets
+    initial_data = np.zeros((num, sensors),dtype=np.complex64)
+    y_data = np.zeros((num, sensors),dtype=np.complex64)
+    
+    for i in range(num):
+        sigma = sigmas[i]
+        x0 = x0s[i]
+        A = 1.0 / (sigma * np.sqrt(np.pi)) # normalization constant
+
+        # Initial Wavefunction
+        psi0 = np.sqrt(A) * np.exp(-(x-x0)**2 / (2.0 * sigma**2)) * np.exp(1j * kx * x)
+        
+    
+        t_eval = np.array([ts[i]])
+        sol = integrate.solve_ivp(psi_t, t_span = [t0, tf], y0 = psi0, t_eval = t_eval, method="RK23")
+        initial_data[i] = psi0
+        y_data[i] = np.transpose(sol.y)[0]
+    
+    
+    X_hat = fft(initial_data)
+    y_hat = fft(y_data)
+    return (X_hat, ts), y_hat
+
+
+def gen_schro_fourier_GRF(num = 200, sensors= 500, x_max = 10, potential = "zero", t0=0,tf=1):
     """ Generate random initial conditions and their DFT at different time steps
 
     Args:

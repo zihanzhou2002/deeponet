@@ -47,6 +47,8 @@ class FiniteChebyshev:
 
 class GRF(object):
     def __init__(self, T, kernel="RBF", length_scale=1, N=1000, interp="cubic"):
+        """ N is number of sensors
+        """
         self.N = N
         self.interp = interp
         self.x = np.linspace(0, T, num=N)[:, None]
