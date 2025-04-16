@@ -50,6 +50,17 @@ def model_matrix_batch(X, net, c, x_max): # take in num_datax1
     return result.squeeze()
 
 def model_wave(X, net, c, x_max):
+    """Original DeepONet model for wave equation.
+
+    Args:
+        X (_type_): _description_
+        net (_type_): _description_
+        c (_type_): _description_
+        x_max (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     x_func = torch.tensor(X[0], dtype=torch.complex128)
     x_func = net.branch(x_func).to(torch.complex128) 
     x_loc = net.activation_trunk(net.trunk(torch.tensor(X[1]).unsqueeze(-1))).to(torch.complex128).squeeze(0)
@@ -66,6 +77,7 @@ def model_wave(X, net, c, x_max):
     return result
 
 def model_wave_small(X, net, c, x_max):
+
     x_func = torch.tensor(X[0], dtype=torch.complex128).unsqueeze(-1)
     x_func = net.branch(x_func).to(torch.complex128) 
     x_loc = net.activation_trunk(net.trunk(torch.tensor(X[1]).unsqueeze(-1))).to(torch.complex128).squeeze(0)
@@ -98,6 +110,18 @@ def model_wave_multi(X, net):
     return result
 
 def model_wave_energy_simple(X, net, c, x_max , fourier =True):
+    """ DeepoNet model for wave equation with energy preservation.
+
+    Args:
+        X (_type_): _description_
+        net (_type_): _description_
+        c (_type_): _description_
+        x_max (_type_): _description_
+        fourier (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        _type_: _description_
+    """
     # Apply branch and trunk network
     x_func = torch.tensor(X[0], dtype=torch.complex128)
     x_func = net.branch(x_func).to(torch.complex128) 
@@ -121,7 +145,7 @@ def model_wave_energy_simple(X, net, c, x_max , fourier =True):
     W_large_inv = torch.kron(torch.eye(2, dtype=torch.complex128), W_inv)
     
     # Differentiation matrix D
-    k_np = (2 * np.pi / x_max) * fftfreq(nx, dx)
+    k_np = (2 * np.pi ) * fftfreq(nx, dx)
     k = torch.tensor(k_np, dtype=torch.complex128)
     D = torch.diag(1j * k)
     D_large = torch.block_diag(D, torch.eye(nx, dtype=torch.complex128))
@@ -188,31 +212,106 @@ def model_wave_energy_simple(X, net, c, x_max , fourier =True):
     return result_energy.squeeze()
 
 def model_wave_energy_multi(X, net, x_max = 10, fourier =True):
+    """ DeepoNet model for wave equation with energy preservation.
+
+    Args:
+        X (_type_): _description_
+        net (_type_): _description_
+        c (_type_): _description_
+        x_max (_type_): _description_
+        fourier (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        _type_: _description_
+    """
     # Apply branch and trunk network
     x_func = torch.tensor(X[0], dtype=torch.complex128)
     x_func = net.branch(x_func).to(torch.complex128) 
-    x_loc = net.activation_trunk(net.trunk(torch.tensor(X[1]).unsqueeze(-1))).to(torch.complex128)
-    #x_loc = x_loc.unsqueeze(-1)
+    
+    x_loc = net.activation_trunk(net.trunk(torch.tensor(X[1]).unsqueeze(-1))).to(torch.complex128).squeeze(0)
+    x_loc = x_loc.unsqueeze(-1)
     
     x_func = x_func.view(x_func.shape[0], np.shape(X[0])[1], -1).to(torch.complex128)
-    x_loc = torch.transpose(x_loc, 0, 1)
     
-    # Probability preservation on
-    nx = X[0].shape[1]
+    # Energy preservation on
+    nx = int(X[0].shape[1] / 2)
     dx = x_max / nx
     
-    E = nx / dx if fourier else 1 /dx
+    # DFT matrix W
+    W_np = dft(nx)
+    W = torch.tensor(W_np, dtype=torch.complex128)
+    W_inv_np = W_np.conj().T / nx
+    W_inv = torch.tensor(W_inv_np, dtype=torch.complex128).contiguous()
     
-    Q, R = torch.linalg.qr(x_func)
+    W_large = torch.kron(torch.eye(2, dtype=torch.complex128), W)
+    W_large_inv = torch.kron(torch.eye(2, dtype=torch.complex128), W_inv)
+    
+    # Differentiation matrix D
+    k_np = (2 * np.pi ) * fftfreq(nx, dx)
+    k = torch.tensor(k_np, dtype=torch.complex128)
+    D = torch.diag(1j * k)
+    D_large = torch.block_diag(D, torch.eye(nx, dtype=torch.complex128))
+    D_large_sqrt = torch.block_diag(torch.diag(torch.abs(k)), torch.eye(nx, dtype=torch.complex128))
+    
+    # Define relvant matrices
+    #omega = torch.block_diag(c**2*torch.eye(nx, dtype=torch.complex128), torch.eye(nx, dtype=torch.complex128))
+    omega_sqrt = torch.block_diag(c*torch.eye(nx, dtype=torch.complex128), torch.eye(nx, dtype=torch.complex128))
+    
+    
+    #theta = D_large.conj().T@W_large_inv.conj().T@omega@W_large_inv@D_large
+    #theta = omega@D_large.conj().T@D_large / nx
+    theta_sqrt = omega_sqrt@D_large_sqrt /torch.sqrt(torch.tensor(nx,dtype=torch.complex128))
+    #c_tensor = torch.tensor(c, dtype=torch.complex128)
+    
+    #init = torch.tensor(X[0], dtype=torch.complex128)
+    init_ux_sol = torch.tensor(X[0], dtype=torch.complex128)@D_large.conj().T@W_large_inv.conj().T
+    #E_alt = init@theta@init.conj().T
+  
+    # Caulate energy
+    E = (
+    torch.sum(c**2 * (torch.abs(init_ux_sol[:, :nx])**2), dim=1) +
+    torch.sum(torch.abs(init_ux_sol[:, nx:])**2, dim=1)).to(torch.complex128)
+    
+
+    # Decompose Q
+    #theta_sqrt_batch = theta_sqrt.expand(x_func.shape[0], -1, -1)
+    #theta_small = theta[1:, 1:]
+    theta_small_sqrt = theta_sqrt[1:, 1:]
+    theta_small_sqrt_inv = torch.diag(1 / torch.diagonal(theta_small_sqrt))
+    
+    b1s = x_func[:, 0, :]
+    B_small = x_func[:, 1:, :]
+    B_small_tilde = torch.einsum("pn, mnl ->mpl", theta_small_sqrt, B_small)
+    
+    
+    Q_small_tilde, R = torch.linalg.qr(B_small_tilde)
+    R_inv = torch.linalg.inv(R)
+    
+    
+    
+    Q_tilde = torch.zeros_like(x_func)
+    
+    # The first rows of each matrix
+    Q_tilde[:, 0, :] = torch.matmul(b1s.unsqueeze(1), R_inv).squeeze(1)
+    Q_tilde[:, 1:, :] = torch.einsum("pn, mnl -> mpl", theta_small_sqrt_inv, Q_small_tilde)
+    
+    
     alpha_tilde = torch.matmul(R, x_loc).to(torch.complex128)
     
-    norm_alpha_tilde = torch.linalg.vector_norm(alpha_tilde, dim=1, keepdim=True) + 1e-08
-    alpha_scaled = alpha_tilde* np.sqrt(E) / norm_alpha_tilde
+    norm_alpha_tilde = torch.linalg.vector_norm(alpha_tilde, dim=1, keepdim=True)
+    # Create a mask for zero values
+    zero_mask = (norm_alpha_tilde == 0)
+
+    # Replace zeros with ones in the denominator to avoid division by zero
+    safe_norm = torch.where(zero_mask, torch.ones_like(norm_alpha_tilde), norm_alpha_tilde)
+    #alpha_scaled = alpha_tilde* np.sqrt(E) / norm_alpha_tilde
+    p = alpha_tilde.shape[1]
+    alpha_scaled = alpha_tilde* torch.sqrt(E).unsqueeze(1).unsqueeze(2) / safe_norm
     
-    result_prob = torch.bmm(Q, alpha_scaled).to(torch.complex128)
+    result_energy = torch.bmm(Q_tilde, alpha_scaled).to(torch.complex128)
     
     
-    return result_prob
+    return result_energy.squeeze()
 
 
 def complex_relu(x):
@@ -406,12 +505,13 @@ print("Finished Training")
 plt.plot(np.arange(len(loss_record))*1000, np.array(loss_record), label=f"loss-{loss_fn.__name__}")
 plt.plot(np.arange(len(loss_record))*1000, np.array(err_record), label = f"error-{loss_fn.__name__}")
 plt.title(f"Training Loss, {epochs} epochs")
+plt.grid(True)
 plt.legend()
 plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_train_{model.__name__}_epoch{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
 plt.show()
 
 # Testing on one initial condition
-X_test_fixed, y_test_fixed = wave_system_single.gen_wave_fourier_init_fixed_speed(num = 400, Nx = nx, x_max = L, tf = T,)
+X_test_fixed, y_test_fixed = wave_system_single.gen_wave_fourier_init_fixed_speed(num = 400, Nx = nx, x_max = L, tf = T)
 #X_test_fixed, y_test_fixed = schrodinger_system.gen_schro_fourier_fixed_multi(nu = 1, nx = nx, nt = 50)
 
 with torch.no_grad():

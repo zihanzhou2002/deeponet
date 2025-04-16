@@ -536,7 +536,7 @@ def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_m
     
     # Generating Datasets
     initial_data = np.zeros((Nu, 2*Nx),dtype=np.complex128)
-    y_data = np.zeros((Nu, 2*Nx, Nt),dtype=np.complex128)
+    y_data = np.zeros((Nu, Nt, 2*Nx),dtype=np.complex128)
     
     for i in range(Nu):
         u0 = u0s[i]# Initial condition (Gaussian pulse)
@@ -547,8 +547,8 @@ def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_m
         # Initial Wavefunction
         sol = solve_wave_whole_fourier_exact(u0=u0, v0=v0, Nt=Nt, c = c, Nx = Nx, L=x_max, T = tf)
 
-        y_data[i, 0 : Nx,:] = np.transpose(sol[:,:, 0]) 
-        y_data[i, Nx :, :] = np.transpose(sol[:,:, 1])
+        y_data[i,:, 0:Nx] = sol[:,:, 0]
+        y_data[i, :, Nx:] = sol[:,:, 1]
     
     
     return (initial_data, ts), y_data
@@ -809,12 +809,11 @@ def main():
     nt = 41
     
     X_train, y_train = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = num, Nx = nx, Nt = nt, x_max = L, tf = T)
-    X_test_fixed, y_test_fixed = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 1, Nt = nt, Nx = nx, x_max = L, tf = T)
-    nx = int(np.shape(y_test_fixed)[1] / 2)
+    X_test_fixed, y_test_fixed = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 1, Nx = nx, Nt = nt, x_max = L, tf = T)
+    nx = int(np.shape(y_test_fixed)[-1] / 2)
     
      # Correct physical frequencies
      
-    nt = y_test_fixed.shape[2]
     
     dx = L / (nx - 1)
     dt = T / (nt - 1)
@@ -826,8 +825,8 @@ def main():
     
     i = 9
     
-    plt.plot(x, X_train[0][i, :nx], label="initial condition")
-    plt.plot(x, y_train[i,:nx, 10], label = "after certain time")
+    plt.plot(x, X_test_fixed[0][0, :nx], label="initial condition")
+    plt.plot(x, y_test_fixed[0, i,0:nx], label = "after certain time")
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -839,18 +838,18 @@ def main():
     W_large_inv = np.kron(np.eye(2), W_inv)
     #print(f"W inv{W_large_inv.shape}")
     #print(f"y_pred {y_pred.shape}")
-    #y_true_sol = y_test_fixed@W_large_inv.conj().T # for single
-    y_true_sol = W_large_inv@y_test_fixed[0] # for whole
+    y_true_sol = y_test_fixed[0]@W_large_inv.conj().T # for single
+    #y_true_sol = W_large_inv@y_test_fixed[0] # for whole
 
     
     fig, ax = plt.subplots(1, 1, subplot_kw={'projection': '3d'})
-    ax.plot_surface(x_grid, t_grid, np.transpose(y_true_sol[0: nx, :]), rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
+    ax.plot_surface(x_grid, t_grid, y_true_sol[:, 0:nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
     plt.show()
     plt.close()
     
 
     fig, ax = plt.subplots()
-    pcm = ax.pcolormesh(x_grid, t_grid, y_true_sol[0:nx, :].T.real, shading='auto', cmap= cm.coolwarm)
+    pcm = ax.pcolormesh(x_grid, t_grid, y_true_sol[:, 0:nx].real, shading='auto', cmap= cm.coolwarm)
     fig.colorbar(pcm, ax=ax)  # optional: shows the color scale
     plt.xlabel("x")
     plt.ylabel("t")
@@ -862,14 +861,14 @@ def main():
     D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
 
     
-    #y_true_x_sol = y_test_fixed@D_large.conj().T@W_large_inv.conj().T
-    y_true_x_sol = W_large_inv@D_large@y_test_fixed[0]
+    y_true_x_sol = y_test_fixed[0]@D_large.conj().T@W_large_inv.conj().T
+    #y_true_x_sol = W_large_inv@D_large@y_test_fixed[0]
     
     fig = plt.figure()
 
     x_grid, t_grid  = np.meshgrid(x, t)
     
-    energy_true = dx*np.array([np.sum(c**2*np.abs(y_true_x_sol[0: nx, i])**2) + np.sum(np.abs(y_true_x_sol[nx :, i])**2) for i in range(nt)])
+    energy_true = dx*np.array([np.sum(c**2*np.abs(y[0:nx])**2) + np.sum(np.abs(y[nx:])**2) for y in y_true_x_sol])
     
     
     # Plot predicted solution
