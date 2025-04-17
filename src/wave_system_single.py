@@ -723,24 +723,18 @@ def plot_wave_2d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     W_large_inv = np.kron(np.eye(2), W_inv)
     #print(f"W inv{W_large_inv.shape}")
     #print(f"y_pred {y_pred.shape}")
-    if "multi" in model.__name__:
-        y_pred_sol = W_large_inv@y_pred
-        y_true_sol = W_large_inv@y_true
-        y_pred_sol = np.transpose(y_pred_sol)
-        y_true_sol = np.transpose(y_true_sol)
-    else:
-        y_pred_sol = y_pred@W_large_inv.conj().T
-        y_true_sol = y_true@W_large_inv.conj().T
+
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-    
-    absmax = np.max(np.max(np.abs(y_true_sol[0:nx, :]), np.max(np.abs(y_pred_sol[0:nx, :]))))
+    y_pred_sol = y_pred@W_large_inv.conj().T
+    y_true_sol = y_true@W_large_inv.conj().T
+    absmax = np.max(np.max(np.abs(y_true_sol[:, 0:nx]), np.max(np.abs(y_pred_sol[:, 0:nx]))))
     absmax = np.max(absmax, 1e-10)
     
-    pcm = ax1.pcolormesh(x_grid, t_grid, y_true_sol[0:nx, :].T.real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
+    pcm = ax1.pcolormesh(x_grid, t_grid, y_true_sol[:, 0:nx].real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
     ax1.set_title("Groundtruth Solution")
     
-    pcm = ax2.pcolormesh(x_grid, t_grid, y_pred_sol[0:nx, :].T.real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
+    pcm = ax2.pcolormesh(x_grid, t_grid, y_pred_sol[:, 0:nx].real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
     ax2.set_title("Predicted Solution")
     
     fig.colorbar(pcm, ax=ax2)  # optional: shows the color scale
@@ -790,7 +784,6 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     plt.plot(t, energy_pred, label='predicted energy')
     plt.plot(t, energy_true, label='actual energy')
     plt.grid(True)
-    plt.ylim(-10, 10)
     plt.xlabel("Time")
     plt.ylabel("Energy")
     plt.legend()
@@ -809,7 +802,7 @@ def main():
     nt = 41
     
     X_train, y_train = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = num, Nx = nx, Nt = nt, x_max = L, tf = T)
-    X_test_fixed, y_test_fixed = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 1, Nx = nx, Nt = nt, x_max = L, tf = T)
+    X_test_fixed, y_test_fixed = gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 5, Nx = nx, Nt = nt, x_max = L, tf = T)
     nx = int(np.shape(y_test_fixed)[-1] / 2)
     
      # Correct physical frequencies
