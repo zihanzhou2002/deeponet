@@ -133,7 +133,7 @@ def model_wave_energy_simple(X, net, c, x_max , fourier =True):
     
     # Energy preservation on
     nx = int(X[0].shape[1] / 2)
-    dx = x_max / nx
+    dx = x_max / (nx - 1)
     
     # DFT matrix W
     W_np = dft(nx)
@@ -211,7 +211,7 @@ def model_wave_energy_simple(X, net, c, x_max , fourier =True):
     
     return result_energy.squeeze()
 
-def model_wave_energy_multi(X, net, x_max = 10, fourier =True):
+def model_wave_energy_multi(X, net, c, x_max = 10, fourier =True):
     """ DeepoNet model for wave equation with energy preservation.
 
     Args:
@@ -235,7 +235,7 @@ def model_wave_energy_multi(X, net, x_max = 10, fourier =True):
     
     # Energy preservation on
     nx = int(X[0].shape[1] / 2)
-    dx = x_max / nx
+    dx = x_max / (nx - 1)
     
     # DFT matrix W
     W_np = dft(nx)
@@ -243,7 +243,7 @@ def model_wave_energy_multi(X, net, x_max = 10, fourier =True):
     W_inv_np = W_np.conj().T / nx
     W_inv = torch.tensor(W_inv_np, dtype=torch.complex128).contiguous()
     
-    W_large = torch.kron(torch.eye(2, dtype=torch.complex128), W)
+    #W_large = torch.kron(torch.eye(2, dtype=torch.complex128), W)
     W_large_inv = torch.kron(torch.eye(2, dtype=torch.complex128), W_inv)
     
     # Differentiation matrix D
@@ -296,7 +296,7 @@ def model_wave_energy_multi(X, net, x_max = 10, fourier =True):
     Q_tilde[:, 1:, :] = torch.einsum("pn, mnl -> mpl", theta_small_sqrt_inv, Q_small_tilde)
     
     
-    alpha_tilde = torch.matmul(R, x_loc).to(torch.complex128)
+    alpha_tilde = torch.matmul(R, x_loc.permute(1, 0, 2).squeeze()).to(torch.complex128)
     
     norm_alpha_tilde = torch.linalg.vector_norm(alpha_tilde, dim=1, keepdim=True)
     # Create a mask for zero values
@@ -311,7 +311,7 @@ def model_wave_energy_multi(X, net, x_max = 10, fourier =True):
     result_energy = torch.bmm(Q_tilde, alpha_scaled).to(torch.complex128)
     
     
-    return result_energy.squeeze()
+    return result_energy.permute(0, 2, 1).squeeze()
 
 
 def complex_relu(x):
@@ -387,7 +387,7 @@ num_test= 100
 #epochs = 500
 #epochs = 50000
 epochs = 10000
-
+nt = 50
 
 # Network
 activation = "relu"
@@ -400,9 +400,11 @@ L = 10
 T = 1
 c = 1
 
-X_train, y_train = wave_system_single.gen_wave_fourier_rand_fixed_speed(num = num_train, Nx = nx, x_max= L, tf=T)
-X_test, y_test = wave_system_single.gen_wave_fourier_rand_fixed_speed(num=num_test, Nx = nx, x_max = L, tf = T)
+#X_train, y_train = wave_system_single.gen_wave_fourier_rand_fixed_speed(num = num_train, Nx = nx, x_max= L, tf=T)
+#X_test, y_test = wave_system_single.gen_wave_fourier_rand_fixed_speed(num=num_test, Nx = nx, x_max = L, tf = T)
 
+X_train, y_train = wave_system_single.gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = num_train, Nx = nx,Nt = nt, x_max= L, tf=T)
+X_test, y_test = wave_system_single.gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu=num_test, Nx = nx, Nt=nt, x_max = L, tf = T)
 #data = dde.data.TripleCartesianProd(X_train, y_train, X_test, y_test)
 print(f"x_train : {np.shape(X_train[0])}, {np.shape(X_train[1])} \n y_train: {np.shape(y_train)}")
 
@@ -430,7 +432,7 @@ print(f"x_train : {np.shape(X_train[0])}, {np.shape(X_train[1])} \n y_train: {np
 #net = dde.nn.DeepONetComplex(
 #    [2*nx, 800, 800], [1, 10, 10, 10], complex_relu, "Glorot normal"
 #)  
-p = 20
+p = nx
 
 
 net = dde.nn.DeepONetComplex(
@@ -452,9 +454,10 @@ print("Dataset generated")
 # Prescribe initializer, model, and loss function
 
 #loss_fn = complex_mse_loss
-loss_fn = complex_mse_loss
-err_fn = complex_mse_loss
-model = model_wave_energy_simple
+loss_fn = complex_l2_relative_error
+err_fn = complex_l2_relative_error
+#model = model_wave_energy_simple
+model = model_wave_energy_multi
 #optimizer = torch.optim.Adam(net.parameters(), lr=0.001)# , weight_decay=1e-4)
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-2)
 #optimizer = torch.optim.LBFGS(net.parameters(), lr=1e-2)
@@ -511,13 +514,13 @@ plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wa
 plt.show()
 
 # Testing on one initial condition
-X_test_fixed, y_test_fixed = wave_system_single.gen_wave_fourier_init_fixed_speed(num = 400, Nx = nx, x_max = L, tf = T)
+#X_test_fixed, y_test_fixed = wave_system_single.gen_wave_fourier_init_fixed_speed(num = 400, Nx = nx, x_max = L, tf = T)
 #X_test_fixed, y_test_fixed = schrodinger_system.gen_schro_fourier_fixed_multi(nu = 1, nx = nx, nt = 50)
 
 with torch.no_grad():
-    y_pred_fixed = model(X_test_fixed,net,c,L).squeeze()
+    y_pred_fixed = model(X_test,net,c,L).squeeze()
 
-err = err_fn(y_pred_fixed, torch.tensor(y_test_fixed, dtype = torch.complex128))
+err = err_fn(y_pred_fixed, torch.tensor(y_test, dtype = torch.complex128))
 print(f"Final {err_fn.__name__} error rate : {err.item():.6f}")
 
 
@@ -527,8 +530,8 @@ print(f"Final {err_fn.__name__} error rate : {err.item():.6f}")
 #y_pred_fixed_sol = np.hstack((ifft(y_pred_fixed[:, 0: nx].detach().numpy(), axis = 1) , ifft(y_pred_fixed[:, nx: ].detach().numpy(), axis = 1)))
 #y_test_fixed_sol = np.hstack((ifft(y_test_fixed[:, 0: nx], axis = 1), ifft(y_pred_fixed[:, nx:], axis=1)))
 
-wave_system_single.plot_wave_3d(y_pred_fixed.detach().numpy(), y_test_fixed, model,net, optimizer, x_max = L, T = T)
-wave_system_single.plot_wave_energy(y_pred_fixed.detach().numpy(), y_test_fixed, model, net, optimizer,c = c, x_max = L, T = 1)
+wave_system_single.plot_wave_2d(y_pred_fixed[0].detach().numpy(), y_test[0], model,net, optimizer, x_max = L, T = T)
+wave_system_single.plot_wave_energy(y_pred_fixed[0].detach().numpy(), y_test[0], model, net, optimizer,c = c, x_max = L, T = 1)
 
 print("Finished")
 
