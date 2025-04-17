@@ -77,7 +77,7 @@ def model_schro_multi(X, net):
     #result = torch.einsum('bi, bi->b', x_func, x_loc).to(torch.complex64)
     #result = net.concatenate_outputs(xs)
     #print(f"result = {result}")
-    return result
+    return result.permute(0, 2, 1).squeeze()
 
 def model_schro_prob_simple(X, net, x_max = 10, fourier =True):
     # Apply branch and trunk network
@@ -134,7 +134,7 @@ def model_schro_prob_multi(X, net, x_max = 10, fourier =True):
     result_prob = torch.bmm(Q, alpha_scaled).to(torch.complex64)
     
     
-    return result_prob
+    return result_prob.permute(0, 2, 1).squeeze()
 
 
 def complex_relu(x):
