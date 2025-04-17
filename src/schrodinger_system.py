@@ -399,10 +399,10 @@ def gen_schro_fourier_GRF(num = 200, sensors= 500, x_max = 10, potential = "zero
 # =============================================================================================
 
 
-def gen_schro_fourier_rand_multi(nu = 200, nx = 100, potential = "zero", nt= 50, t0=0,tf=1):
+def gen_schro_fourier_rand_multi(nu = 200, nx = 100, potential = "zero", nt= 50,x_max=10, t0=0,tf=1):
     
     # Specify constants
-    dx = 10 / nx
+    dx = x_max / nx
     x     = np.arange(0, 10, dx)       # spatial grid points
     kx    = 0.1                        # wave number
     m     = 0.5                          # mass
@@ -446,8 +446,8 @@ def gen_schro_fourier_rand_multi(nu = 200, nx = 100, potential = "zero", nt= 50,
         print(f"sigmas = {sigmas}")
     # Generating Datasets
     initial_data = np.zeros((nu, nx),dtype=np.complex64)
-    y_data = np.zeros((nu, nx, nt),dtype=np.complex64)
-    y_hat = np.zeros((nu, nx, nt),dtype=np.complex64)
+    y_data = np.zeros((nu, nt, nx),dtype=np.complex64)
+    y_hat = np.zeros((nu,nt, nx),dtype=np.complex64)
     
     for i in range(nu):
         sigma = sigmas[i]
@@ -461,9 +461,9 @@ def gen_schro_fourier_rand_multi(nu = 200, nx = 100, potential = "zero", nt= 50,
         t_eval = ts
         sol = integrate.solve_ivp(psi_t, t_span = [t0, tf], y0 = psi0, t_eval = t_eval, method="RK23")
         initial_data[i] = psi0
-        y_data[i] = sol.y
+        y_data[i] = np.transpose(sol.y)
         
-        y_hat[i] = np.transpose(fft(np.transpose(y_data[i])))
+        y_hat[i] = fft(np.transpose(y_data[i]))
     
     
     X_hat = fft(initial_data)
@@ -471,21 +471,14 @@ def gen_schro_fourier_rand_multi(nu = 200, nx = 100, potential = "zero", nt= 50,
     return (X_hat, ts), y_hat
 
 
-def gen_schro_fourier_fixed_multi(nu = 1, nx = 100, x0 = 5, sigma = 0.3, potential = "zero", nt= 50, t0=0,tf=1):
+def gen_schro_fourier_fixed_multi(nu = 1, nx = 100, x0 = 5, sigma = 0.3, potential = "zero", nt= 50,x_max = 10, t0=0,tf=1):
     
     # Specify constants
-    dx = 10 / nx
+    dx = x_max / nx
     x     = np.arange(0, 10, dx)       # spatial grid points
     kx    = 0.1                        # wave number
     m     = 0.5                          # mass
     hbar = 1
-    
-    # Range of randomized sigmas and x0s
-    sigma_min = 0.2
-    sigma_max = 2.0
-    
-    x0_min = 1.0
-    x0_max = 9.0
     
     
     # Potential V(x)
@@ -515,8 +508,8 @@ def gen_schro_fourier_fixed_multi(nu = 1, nx = 100, x0 = 5, sigma = 0.3, potenti
    
     # Generating Datasets
     initial_data = np.zeros((nu, nx),dtype=np.complex64)
-    y_data = np.zeros((nu, nx, nt),dtype=np.complex64)
-    y_hat = np.zeros((nu, nx, nt),dtype=np.complex64)
+    y_data = np.zeros((nu, nt, nx),dtype=np.complex64)
+    y_hat = np.zeros((nu, nt, nx),dtype=np.complex64)
     
     for i in range(nu):
         #sigma = sigmas[i]
@@ -530,9 +523,9 @@ def gen_schro_fourier_fixed_multi(nu = 1, nx = 100, x0 = 5, sigma = 0.3, potenti
         t_eval = ts
         sol = integrate.solve_ivp(psi_t, t_span = [t0, tf], y0 = psi0, t_eval = t_eval, method="RK23")
         initial_data[i] = psi0
-        y_data[i] = sol.y
+        y_data[i] = np.transpose(sol.y)
         
-        y_hat[i] = np.transpose(fft(np.transpose(y_data[i])))
+        y_hat[i] = fft(np.transpose(y_data[i]))
     
     
     X_hat = fft(initial_data)
@@ -545,7 +538,7 @@ def gen_schro_fourier_fixed_multi(nu = 1, nx = 100, x0 = 5, sigma = 0.3, potenti
 
 
 
-
+# Below is the older version, not used anymore
 
 
 
@@ -886,4 +879,10 @@ def gen_schro_dataset_x0_cart_complex_sig(num=500, sensors=20, sigma=0.3, t0=0,t
     
     
     return (initial_data, locs), y_data
-        
+
+
+def main():
+    return 0
+
+if main() == "__main__":
+    main()
