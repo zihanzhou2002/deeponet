@@ -93,7 +93,7 @@ def model_wave_small(X, net, c, x_max):
     #print(f"result = {result}")
     return result
 
-def model_wave_multi(X, net):
+def model_wave_multi(X, net, c, x_max ):
     x_func = torch.tensor(X[0], dtype=torch.complex128)
     x_func = net.branch(x_func).to(torch.complex128) 
     x_loc = net.activation_trunk(net.trunk(torch.tensor(X[1]).unsqueeze(-1))).to(torch.complex128).squeeze(0)
@@ -107,7 +107,7 @@ def model_wave_multi(X, net):
     #result = torch.einsum('bi, bi->b', x_func, x_loc).to(torch.complex128)
     #result = net.concatenate_outputs(xs)
     #print(f"result = {result}")
-    return result
+    return result.permute(0, 2, 1).squeeze()
 
 def model_wave_energy_simple(X, net, c, x_max , fourier =True):
     """ DeepoNet model for wave equation with energy preservation.
@@ -368,6 +368,7 @@ def complex_l2_relative_error(pred, target):
     rel_error = torch.sqrt(error_norm / target_norm)
     return rel_error
 
+
 # ==========================================================================================================
 # ==========================================================================================================
 
@@ -457,7 +458,8 @@ print("Dataset generated")
 loss_fn = complex_l2_relative_error
 err_fn = complex_l2_relative_error
 #model = model_wave_energy_simple
-model = model_wave_energy_multi
+#model = model_wave_energy_multi
+model = model_wave_multi
 #optimizer = torch.optim.Adam(net.parameters(), lr=0.001)# , weight_decay=1e-4)
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-2)
 #optimizer = torch.optim.LBFGS(net.parameters(), lr=1e-2)
@@ -513,6 +515,26 @@ plt.legend()
 plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_train_{model.__name__}_epoch{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
 plt.show()
 
+
+# After your training loop where you print "Finished Training"
+model_save_path = "C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\trained_nets"
+os.makedirs(model_save_path, exist_ok=True)
+
+# Create a descriptive filename
+model_filename = f"{model.__name__}_epoch{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_loss-{loss_fn.__name__}.pt"
+full_path = os.path.join(model_save_path, model_filename)
+
+# Save the model
+torch.save({
+    'model_state_dict': net.state_dict(),
+    'optimizer_state_dict': optimizer.state_dict(),
+    'loss': loss.item(),
+    'epoch': epochs,
+    'loss_function': loss_fn.__name__, 
+    'lr': optimizer.param_groups[0]['lr']
+}, full_path)
+
+print(f"Model saved to {full_path}")
 # Testing on one initial condition
 #X_test_fixed, y_test_fixed = wave_system_single.gen_wave_fourier_init_fixed_speed(num = 400, Nx = nx, x_max = L, tf = T)
 #X_test_fixed, y_test_fixed = schrodinger_system.gen_schro_fourier_fixed_multi(nu = 1, nx = nx, nt = 50)
@@ -531,7 +553,7 @@ print(f"Final {err_fn.__name__} error rate : {err.item():.6f}")
 #y_test_fixed_sol = np.hstack((ifft(y_test_fixed[:, 0: nx], axis = 1), ifft(y_pred_fixed[:, nx:], axis=1)))
 
 wave_system_single.plot_wave_2d(y_pred_fixed[0].detach().numpy(), y_test[0], model,net, optimizer, x_max = L, T = T)
-wave_system_single.plot_wave_energy(y_pred_fixed[0].detach().numpy(), y_test[0], model, net, optimizer,c = c, x_max = L, T = 1)
+wave_system_single.plot_wave_energy(y_pred_fixed[0].detach().numpy(), y_test[0], model, net, optimizer,c = c, x_max = L, T = T)
 
 print("Finished")
 
