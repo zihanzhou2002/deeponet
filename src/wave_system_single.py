@@ -725,11 +725,13 @@ def plot_wave_2d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     #print(f"y_pred {y_pred.shape}")
 
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10), constrained_layout=True)
     y_pred_sol = y_pred@W_large_inv.conj().T
     y_true_sol = y_true@W_large_inv.conj().T
-    absmax = np.max(np.max(np.abs(y_true_sol[:, 0:nx]), np.max(np.abs(y_pred_sol[:, 0:nx]))))
-    absmax = np.max(absmax, 1e-10)
+    max1 = np.max(np.abs(y_true_sol[:, 0:nx]))
+    max2 = np.max(np.abs(y_pred_sol[:, 0:nx]))
+    absmax = max(max1, max2)
+    absmax = max(absmax, 1e-10)
     
     pcm = ax1.pcolormesh(x_grid, t_grid, y_true_sol[:, 0:nx].real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
     ax1.set_title("Groundtruth Solution")
@@ -755,7 +757,7 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     """
     
     nx = int(np.shape(y_pred)[1] / 2)
-    dx = x_max / nx
+    dx = x_max / (nx - 1)
     #k = (2 * np.pi / x_max) * fftfreq(nx, dx)  # Correct physical frequencies
     k = 2 * np.pi * fftfreq(nx, dx)
     
@@ -770,6 +772,20 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     
     #y_pred_x = y_pred@D_large.conj().T
     #y_true_x = y_true@D_large.conj().T
+    """
+    D = np.diag(1j * k)
+    D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
+
+    
+    y_true_x_sol = y_test_fixed[0]@D_large.conj().T@W_large_inv.conj().T
+    #y_true_x_sol = W_large_inv@D_large@y_test_fixed[0]
+    
+    fig = plt.figure()
+
+    x_grid, t_grid  = np.meshgrid(x, t)
+    
+    energy_true = dx*np.array([np.sum(c**2*np.abs(y[0:nx])**2) + np.sum(np.abs(y[nx:])**2) for y in y_true_x_sol])
+    """
     
     y_pred_x_sol = y_pred@D_large.conj().T@W_large_inv.conj().T
     y_true_x_sol = y_true@D_large.conj().T@W_large_inv.conj().T
@@ -778,24 +794,28 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     
     t = np.linspace(0, T, len(y_true))   
     
-    energy_pred = dx*np.array([np.sum(c**2*y[0: nx]**2) + np.sum(y[nx :]**2) for y in y_pred_x_sol])
-    energy_true = dx*np.array([np.sum(c**2*y[0: nx]**2) + np.sum(y[nx :]**2) for y in y_true_x_sol])
+    energy_pred = dx*np.array([np.sum(c**2*np.abs(y[0: nx])**2) + np.sum(np.abs(y[nx :])**2) for y in y_pred_x_sol])
+    energy_true = dx*np.array([np.sum(c**2*np.abs(y[0: nx])**2) + np.sum(np.abs(y[nx :])**2) for y in y_true_x_sol])
     # Plot predicted solution
+    energy_max = max(np.max(np.abs(energy_true)), np.max(np.abs(energy_pred)))
+    
+    
     plt.plot(t, energy_pred, label='predicted energy')
     plt.plot(t, energy_true, label='actual energy')
     plt.grid(True)
     plt.xlabel("Time")
+    plt.ylim(0, (energy_max // 10)*10 + 20)
     plt.ylabel("Energy")
     plt.legend()
     plt.title("Total Energy over Time")
-    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_energy_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    #plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_energy_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
     plt.show()
     
     
     
 def main():
     num = 201
-    nx = 101
+    nx = 20
     L = 10
     T = 2.0
     c = 1
