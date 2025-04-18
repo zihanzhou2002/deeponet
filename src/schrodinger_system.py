@@ -1,6 +1,7 @@
 from scipy import integrate
 from scipy import sparse
-from scipy.fft import fft, ifft
+from scipy.fft import fft, ifft,fftfreq
+from scipy.linalg import dft
 import scipy
 from spaces import *
 
@@ -463,7 +464,7 @@ def gen_schro_fourier_rand_multi(nu = 200, nx = 100, potential = "zero", nt= 50,
         initial_data[i] = psi0
         y_data[i] = np.transpose(sol.y)
         
-        y_hat[i] = fft(np.transpose(y_data[i]))
+        y_hat[i] = fft(y_data[i])
     
     
     X_hat = fft(initial_data)
@@ -881,8 +882,129 @@ def gen_schro_dataset_x0_cart_complex_sig(num=500, sensors=20, sigma=0.3, t0=0,t
     return (initial_data, locs), y_data
 
 
+
+def plot_schrodinger_3d(y_pred, y_true, model,net, optimizer, potential="zero", x_max = 10, T = 1):
+    """ Plot the 3D plots of Schrodinger's Equations. y_pred, y_true of the shape (nt, nx)
+
+    Args:
+        y_pred (nt, nx): predicted solution
+        y_true (nt, nx): actual solution
+        x_max (float): upper bound of spatial domain. Defaults to 10.
+        T (float): upper bound of temporal domain. Defaults to 1.
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, subplot_kw={'projection': '3d'})
+    
+    x = np.linspace(0, x_max, np.shape(y_true)[1])
+    t = np.linspace(0, T, len(y_true))   
+    x_grid, t_grid  = np.meshgrid(x, t)
+    
+    # Plot predicted solution
+    ax1.plot_surface(x_grid, t_grid, np.abs(y_pred)**2, rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
+    ax1.set_title("Predicted Solution")
+    ax2.plot_surface(x_grid, t_grid, np.abs(y_true)**2, rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
+    ax2.set_title("Groundtruth Solution")
+
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_pred_{model.__name__}_potential-{potential}net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.show()
+    
+    
+def plot_schrodinger_prob(y_pred, y_true, model, net, optimizer, potential="zero", x_max = 10, T = 1):
+    """ Plot the 3D plots of Schrodinger's Equations. y_pred, y_true of the shape (nt, nx)
+
+    Args:
+        y_pred (nt, nx): predicted solution
+        y_true (nt, nx): actual solution
+        x_max (float): upper bound of spatial domain. Defaults to 10.
+        T (float): upper bound of temporal domain. Defaults to 1.
+    """
+    dx = x_max / np.shape(y_pred)[1]
+    fig = plt.figure()
+    
+    t = np.linspace(0, T, len(y_true))   
+    
+    prob_pred = np.array([np.sum(np.abs(y)**2 * dx) for y in y_pred])
+    prob_true = np.array([np.sum(np.abs(y)**2 * dx) for y in y_true])
+    # Plot predicted solution
+    plt.plot(t, prob_pred, label='predicted probabilities')
+    plt.plot(t, prob_true, label='actual probabilities')
+    plt.ylim(-2, 2)
+    plt.xlabel("Time")
+    plt.ylabel("Probability")
+    plt.legend()
+    plt.title("Total Probability over Time")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_prob_{model.__name__}_{potential}-potential_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.show()
+    
+    
 def main():
-    return 0
+        # Setup parameters
+    L = 10  # Domain size
+    nx = 512  # Number of spatial points
+    nt = 40  # Number of time steps
+    nu = 200
+    
+    dx = L / (nx - 1)  # Spatial step size
+    T = 1.0
+    dt = T / (nt - 1)  # Time step size
+    
+    x = np.linspace(0, L, nx)
+    t = np.linspace(0, T, nt)
+    
+    # Initial wavefunction (Gaussian wave packet)
+    sigma = 1.0
+    k0 = 2.0
+    x0 = 3.0
+    kx    = 0.1   
+    A = 1.0 / (sigma * np.sqrt(np.pi)) # normalization constant
+
+    # Initial Wavefunction
+    psi0 = np.sqrt(A) * np.exp(-(x-x0)**2 / (2.0 * sigma**2)) * np.exp(1j * kx * x)
+
+    # Solve using Crank-Nicolson
+    #psi_sol = solve_nonlinear_schro_CK(psi0, nx, nt, potential="zero", L=L, T=T)
+    
+    (initial_data_hat, t), psi_hat = gen_schro_fourier_rand_multi(nu=nu, nx=nx, nt=nt, x_max=L, t0=0, tf=T)
+    i = 20
+    psi_sol = ifft(psi_hat[i])
+    #psi_hat = fft(psi_sol)
+    k = (2* np.pi) * fftfreq(nx, dx)
+    D = np.diag(1j * k)
+    W = dft(nx)
+    W_inv = W.conj().T / nx
+    psi_x_sol = ifft(psi_hat[i]@D.T)
+    #Omega = W@W_inv.conj().T + D.conj().T@W@W_inv.conj().T@D / nx**2
+    
+    energy = dx*np.array([np.sum(np.abs(psi_sol[i])**2)*0.25 + np.sum(np.abs(psi_x_sol[i])**2) *0.25 for i in range(nt)])
+    plt.figure(figsize=(12, 6))
+    
+    # Plot initial, middle, and final probability densities
+    plt.plot(x, np.abs(ifft(initial_data_hat[0]))**2, label='Initial')
+    #plt.plot(x, np.abs(psi_sol[nt//2])**2, label=f'Middle (t={nt*dt/2:.1f})')
+    #plt.plot(x, np.abs(psi_sol[-1])**2, label=f'Final (t={nt*dt:.1f})')
+    plt.plot(x, np.abs(psi_sol[0])**2, label=f'Final (t={nt*dt:.1f})')
+    
+    plt.title('Schrödinger Equation: Probability Density Evolution')
+    plt.xlabel('Position')
+    plt.ylabel('|ψ|²')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    plt.close() 
+    
+
+    prob_true = np.array([np.sum(np.abs(y)**2 * dx) for y in psi_sol])
+    # Plot predicted solution
+    plt.plot(t, prob_true, label='actual probabilities')
+    plt.plot(t, energy, label='energy')
+    plt.xlabel("Time")
+    plt.ylabel("Probability")
+    plt.ylim(0, 10)
+    plt.legend()
+    plt.grid(True)
+    plt.title("Total Probability over Time")
+    plt.show()
+    print("Finished!")
+
 
 if main() == "__main__":
     main()
