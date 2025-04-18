@@ -47,7 +47,7 @@ def solve_nonlinear_schro_CK(psi_initial, Nx, Nt, V, L = 10, T=1, ):
     
     
     psi = psi_initial.copy()
-    psi_sol = np.zeros((Nt, Nx), dtype=complex)
+    psi_sol = np.zeros((Nt, Nx), dtype=np.complex64)
     psi_sol[0] = psi
     
     # Laplacian operator (second derivative) using finite difference
@@ -136,7 +136,7 @@ def gen_schro_nonlinear_fourier_fixed(num= 200, potential = "zero", sensors = 50
     # Solve the Initial Value Problem
     sol = solve_nonlinear_schro_CK(psi0, sensors, num, V=V, L=x_max, T=tf)
     
-    y_data = np.array(sol, dtype=np.complex128)
+    y_data = np.array(sol, dtype=np.complex64)
     
     initial_data = np.tile(y_data[0], (num, 1))
     
@@ -256,9 +256,9 @@ def gen_schro_nonlinear_fourier_rand_multi(nu = 200, nx = 100, potential = "zero
     x0s = np.random.uniform(x0_min, x0_max, size= nu)
     
     # Generating Datasets
-    initial_data = np.zeros((nu, nx),dtype=np.complex128)
-    y_data = np.zeros((nu, nt, nx),dtype=np.complex128)
-    y_hat = np.zeros((nu, nt, nx),dtype=np.complex128)
+    initial_data = np.zeros((nu, nx),dtype=np.complex64)
+    y_data = np.zeros((nu, nt, nx),dtype=np.complex64)
+    y_hat = np.zeros((nu, nt, nx),dtype=np.complex64)
     
     for i in range(nu):
         sigma = sigmas[i]
