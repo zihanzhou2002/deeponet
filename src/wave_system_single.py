@@ -725,7 +725,7 @@ def plot_wave_2d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     #print(f"y_pred {y_pred.shape}")
 
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10), constrained_layout=True)
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4), constrained_layout=True)
     y_pred_sol = y_pred@W_large_inv.conj().T
     y_true_sol = y_true@W_large_inv.conj().T
     max1 = np.max(np.abs(y_true_sol[:, 0:nx]))
@@ -740,6 +740,14 @@ def plot_wave_2d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     ax2.set_title("Predicted Solution")
     
     fig.colorbar(pcm, ax=ax2)  # optional: shows the color scale
+    
+    error = y_pred_sol[:, 0:nx].real - y_true_sol[:, 0:nx].real
+
+    absmax_err = np.max(np.abs(error))
+    absmax_err = max(absmax_err, 1e-10)
+    pcm = ax3.pcolormesh(x_grid, t_grid,error, shading='bwr', cmap= cm.bwr, vmin=-absmax_err, vmax = absmax_err)
+    ax3.set_title("Error")
+    fig.colorbar(pcm, ax=ax3)
     plt.xlabel("x")
     plt.ylabel("t")
     plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_2d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
