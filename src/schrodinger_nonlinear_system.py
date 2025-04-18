@@ -39,11 +39,11 @@ def solve_nonlinear_schro_CK(psi_initial, Nx, Nt, V, L = 10, T=1, ):
     - psi_history: Evolution of wavefunction over time
     """
     
-    dx = L / Nx
-    x = np.arange(0, L, dx)
+    dx = L / (Nx - 1)
+    x = np.linsapce(0, L, Nx)
     
-    dt = T / Nt  # Time step size
-    t = np.arange(0, T, dt)
+    dt = T / (Nt - 1)  # Time step size
+    t = np.linspace(0, T, Nt)
     
     
     psi = psi_initial.copy()
@@ -104,8 +104,8 @@ def gen_schro_nonlinear_fourier_fixed(num= 200, potential = "zero", sensors = 50
             - X_loc of shape (num, ): time steps  t_1, ..., t_num to be evaluated on
             - y (num, sensors): the entire dynamic u^hat(x, t) with [[u^hat(x, t_1)], ..., [u^hat(x, t_num)]]
     """
-    dx = x_max / sensors
-    x     = np.arange(0, 10, dx)       # spatial grid points
+    dx = x_max / (sensors - 1)
+    x     = np.linspace(0, x_max, sensors)       # spatial grid points
     kx    = 0.1                        # wave number
     m     = 0.5                          # mass
 
@@ -130,8 +130,8 @@ def gen_schro_nonlinear_fourier_fixed(num= 200, potential = "zero", sensors = 50
 
     # hbar = 1.0545718176461565e-34
     
-    dt = (tf - t0) / num
-    t_eval = np.arange(t0, tf, dt)  # recorded time shots
+    dt = (tf - t0) / (num - 1)
+    t_eval = np.linspace(t0, tf, num)  # recorded time shots
     
     # Solve the Initial Value Problem
     sol = solve_nonlinear_schro_CK(psi0, sensors, num, V=V, L=x_max, T=tf)
@@ -161,10 +161,10 @@ def gen_schro_nonlinear_fourier_rand(num = 200, sensors= 500, Nt = 800, x_max = 
             - y (num, sensors): the entire dynamic u(x, t) with [[u_1^hat(x, t_1)], ..., [u_num^hat(x, t_num)]]
     """
     # Specify constants
-    dx = x_max / sensors
-    x  = np.arange(0, 10, dx)   
-    dt = (tf - t0) / Nt    # spatial grid points
-    t = np.arange(t0, tf, dt)  # recorded time shots
+    dx = x_max / (sensors - 1)
+    x  = np.linspace(0, x_max, sensors)   
+    dt = (tf - t0) / (Nt - 1)    # spatial grid points
+    t = np.linspace(t0, tf, Nt)  # recorded time shots
     kx = 0.1                        # wave number
     m = 0.5                          # mass
     hbar = 1
@@ -221,11 +221,11 @@ def gen_schro_nonlinear_fourier_rand(num = 200, sensors= 500, Nt = 800, x_max = 
 def gen_schro_nonlinear_fourier_rand_multi(nu = 200, nx = 100, potential = "zero", nt= 50,x_max = 10, t0=0,tf=1):
     
     # Specify constants
-    dx = x_max / nx
-    dt = (tf - t0) / nt    # spatial grid points
+    dx = x_max / (nx - 1)
+    dt = (tf - t0) / (nt -1)   # spatial grid points
     
-    x     = np.arange(0, 10, dx)       # spatial grid points
-    t = np.arange(t0, tf, dt)  # recorded time shots
+    x = np.linspace(0, x_max, nx)       # spatial grid points
+    t = np.linspace(t0, tf, nt)  # recorded time shots
     kx    = 0.1                        # wave number
     m     = 0.5                          # mass
     hbar = 1
