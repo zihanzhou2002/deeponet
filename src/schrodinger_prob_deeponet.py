@@ -199,7 +199,7 @@ lr = 0.001
 #epochs = 10000
 
 nx = 20
-
+nt = 50
 #num_train = 500
 #num_test = 100
 num_train = 500
@@ -224,8 +224,11 @@ dim_x = 1
 #X_train, y_train = schrodinger_system.gen_schro_dataset_x0(num=num_train, sensors=nx, sigma=0.3, t0=0,tf=1)
 #X_test, y_test = schrodinger_system.gen_schro_dataset_x0(num=num_test, sensors=nx, sigma=0.3, t0=0,tf=1)
 
-X_train, y_train = schrodinger_system.gen_schro_fourier_rand(num=num_train, sensors=nx,potential="quadratic")
-X_test, y_test = schrodinger_system.gen_schro_fourier_rand(num=num_test, sensors = nx, potential="quadratic")
+#X_train, y_train = schrodinger_system.gen_schro_fourier_rand(num=num_train, sensors=nx,potential="quadratic")
+#X_test, y_test = schrodinger_system.gen_schro_fourier_rand(num=num_test, sensors = nx, potential="quadratic")
+
+X_train, y_train = schrodinger_system.gen_schro_fourier_rand_multi(nu=num_train, nx=nx, nt=nt)
+X_test, y_test = schrodinger_system.gen_schro_fourier_rand_multi(nu=num_test, nx=nx, nt=nt)
 
 #data = dde.data.TripleCartesianProd(X_train, y_train, X_test, y_test)
 print(f"x_train : {np.shape(X_train[0])}, {np.shape(X_train[1])} \n y_train: {np.shape(y_train)}")
@@ -270,7 +273,7 @@ print("Dataset generated")
 
 loss_fn = complex_mse_loss
 err_fn = complex_mse_loss
-model = model_schro_prob_simple
+model = model_schro_multi
 #optimizer = torch.optim.Adam(net.parameters(), lr=0.001)# , weight_decay=1e-4)
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 #scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=100)
