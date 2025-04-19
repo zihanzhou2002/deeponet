@@ -6,7 +6,7 @@ import deepxde as dde
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
-
+import time
 import numpy as np
 
 import tensorflow as tf
@@ -325,7 +325,7 @@ def complex_mse_loss(pred, target):
     # Total loss is sum of both parts
     return mse_real + mse_imag
 
-def complex_l2_relative_error(pred, target):
+def complex_l2_relative_error(pred, target, std=False):
     """
     Compute the L2 relative error for complex-valued tensors.
 
@@ -337,19 +337,25 @@ def complex_l2_relative_error(pred, target):
         torch.Tensor: Scalar tensor (the relative error)
     """
     # Compute squared magnitude difference
+    num_samples = pred.shape[0]
     error = pred - target
-    error_norm = torch.sum(error.real**2 + error.imag**2)
+    l2_err = torch.zeros(num_samples, dtype=torch.float64, device=target.device)
+    for i in range(num_samples):
+        
+        error_norm = torch.sum(error[i].real**2 + error[i].imag**2)
+        # Compute squared magnitude of target
+        target_norm = torch.sum(target[i].real**2 + target[i].imag**2)
+        # Avoid divide-by-zero (in case the target is all zeros, though this is rare)
+        if target_norm == 0:
+            return torch.tensor(float('inf'), device=target.device)
+        # Relative L2 error
+        rel_error = torch.sqrt(error_norm / target_norm)
+        l2_err[i] = rel_error
+    
+    if std:
+        return torch.mean(l2_err), torch.std(l2_err)
 
-    # Compute squared magnitude of target
-    target_norm = torch.sum(target.real**2 + target.imag**2)
-
-    # Avoid divide-by-zero (in case the target is all zeros, though this is rare)
-    if target_norm == 0:
-        return torch.tensor(float('inf'), device=target.device)
-
-    # Relative L2 error
-    rel_error = torch.sqrt(error_norm / target_norm)
-    return rel_error
+    return torch.mean(l2_err)
 
 def complex_mse_loss(pred, target):
     """
@@ -373,7 +379,7 @@ def complex_mse_loss(pred, target):
     # Total loss is sum of both parts
     return mse_real + mse_imag
 
-def schro_energy_loss(y_pred, y_true,x_max=10, potential="zero"):
+def schro_energy_loss(y_pred, y_true,x_max=10, potential="zero", std=False):
     """ Compute the MSE loss for Schrodinger's equation with energy and probability preservation
 """
     nx = y_pred.shape[-1] 
@@ -406,11 +412,65 @@ def schro_energy_loss(y_pred, y_true,x_max=10, potential="zero"):
     torch.sum(0.25 * (torch.abs(ux_sol_true)**2), dim=1) + 0.25 *
     torch.sum(torch.abs(u_sol_true)**2, dim=1)).to(torch.complex64)
     
-    energy_loss = torch.mean(torch.abs(E_pred - E_true)**2)
+    E_mse = torch.abs(E_pred - E_true)**2
+    energy_loss = torch.mean(E_mse)
+    
+    if std:
+        # Calculate the standard deviation of the energy loss
+        energy_loss_std = torch.std(E_mse)
+        return energy_loss, energy_loss_std
 
     # Add any additional terms if needed (e.g., regularization, etc.)
     
     return energy_loss
+
+def schro_prob_loss(y_pred, y_true,x_max=10, potential="zero", std=False):
+    """ Compute the MSE loss for Schrodinger's equation with energy and probability preservation
+""" 
+    nx = y_pred.shape[-1] 
+    dx = x_max / (nx - 1)
+        
+        # DFT matrix W
+
+    W_np = dft(nx)
+    W = torch.tensor(W_np, dtype=torch.complex64)
+    W_inv_np = W_np.conj().T / nx
+    W_inv = torch.tensor(W_inv_np, dtype=torch.complex64).contiguous()
+        
+        # Differentiation matrix D
+    k_np = (2 * np.pi ) * fftfreq(nx, dx)
+    k = torch.tensor(k_np, dtype=torch.complex64)
+    D = torch.diag(1j * k)
+    u_sol_pred = y_pred@W_inv.T
+    
+    u_sol_true = y_true@W_inv.T
+     
+    
+    prob_pred = (torch.sum(torch.abs(u_sol_pred)**2 * dx, dim=1))
+    prob_true = (torch.sum(torch.abs(u_sol_true)**2 * dx ,dim=1))
+
+    prob_mse = torch.abs(prob_pred - prob_true)**2
+    # Add any additional terms if needed (e.g., regularization, etc.)
+    prob_loss = torch.mean(prob_mse)
+    if std:
+        # Calculate the standard deviation of the probability loss
+        prob_loss_std = torch.std(prob_mse)
+        return prob_loss, prob_loss_std
+    return prob_loss
+
+
+def schro_mse_structure_loss(y_pred, y_true):
+    """ Compute the MSE loss for Schrodinger's equation with energy and probability preservation
+"""
+    global keep_energy
+    global keep_prob
+    # Compute the mean squared error (MSE) loss
+    loss = complex_mse_loss(y_pred, y_true)
+    if keep_energy:
+        loss += schro_energy_loss(y_pred, y_true)
+    if keep_prob:
+        loss += schro_prob_loss(y_pred, y_true)
+    return loss
 # ==========================================================================================================
 # ==========================================================================================================
 
@@ -437,14 +497,17 @@ potential = "zero"
 activation = "relu"
 initializer = "Glorot normal"  # "He normal" or "Glorot normal"
 dim_x = 1
+L = 10
+T = 1
 
+linear = True
 #X_train, y_train = schrodinger_system.gen_schro_fourier_rand(num=num_train, sensors=nx,potential="quadratic")
 #X_test, y_test = schrodinger_system.gen_schro_fourier_rand(num=num_test, sensors = nx, potential="quadratic")
 
 #X_train, y_train = schrodinger_system.gen_schro_fourier_rand(num=num_train, sensors=nx)
 #X_test, y_test = schrodinger_system.gen_schro_fourier_rand(num=num_test, sensors=nx)
-X_train, y_train = schrodinger_system.gen_schro_fourier_rand_multi(nu=num_train, nx=nx, nt=nt)
-X_test, y_test = schrodinger_system.gen_schro_fourier_rand_multi(nu=num_test, nx=nx, nt=nt)
+X_train, y_train = schrodinger_system.gen_schro_fourier_rand_multi(nu=num_train, nx=nx, nt=nt, x_max = L, tf = T)
+X_test, y_test = schrodinger_system.gen_schro_fourier_rand_multi(nu=num_test, nx=nx, nt=nt, x_max =L, tf=T)
 
 #data = dde.data.TripleCartesianProd(X_train, y_train, X_test, y_test)
 print(f"x_train : {np.shape(X_train[0])}, {np.shape(X_train[1])} \n y_train: {np.shape(y_train)}")
@@ -486,10 +549,13 @@ print(f"y_train shape {np.shape(y_train)}")
 print("Dataset generated")
 
 # Prescribe initializer, model, and loss function
+keep_energy= False
+keep_prob = False
 
 loss_fn = complex_mse_loss
-err_fn = complex_mse_loss
+err_fn = complex_l2_relative_error
 model = model_schro_structure_multi
+
 #optimizer = torch.optim.Adam(net.parameters(), lr=0.001)# , weight_decay=1e-4)
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 #scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=100)
@@ -501,12 +567,10 @@ print("Initialized ")
 print("Start training")
 
 # Training the model
-loss_record = []
-err_record = []
-
-
-keep_energy= True
-keep_prob = False
+train_loss_record = []
+test_loss_record = []
+train_err_record = []
+test_err_record = []
 
 
 for epoch in range(epochs):
@@ -518,15 +582,20 @@ for epoch in range(epochs):
     loss = loss_fn(y_pred_train.squeeze(), torch.tensor(y_train, dtype=torch.complex64))
     
     with torch.no_grad():
+        train_err = err_fn(y_pred_train.squeeze(), torch.tensor(y_train, dtype=torch.complex64))
         y_pred_test = model(X_test, net)
-        err = err_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype = torch.complex64))
+        test_err = err_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype = torch.complex64))
+        test_loss = loss_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex64))
 
    
     if (epoch + 1) % 1000 == 0:
-        print(f"Epoch {epoch + 1}, loss {loss.item() :.6f}, err = {err.item():.6f}")
+        print(f"Epoch {epoch + 1}, loss {loss.item() :.6f}, train_error = {train_err.item():.6f}, test error = {test_err.item():.6f}")
         
-    loss_record.append(loss.item())
-    err_record.append(err.item())
+    train_loss_record.append(loss.item())
+    train_err_record.append(train_err.item())
+    test_loss_record.append(test_loss.item())
+    test_err_record.append(test_err.item())
+    
     loss.backward()
     #print(loss)
     optimizer.step()
@@ -539,12 +608,15 @@ for epoch in range(epochs):
 
 print("Finished Training")
 plt.figure()
-plt.plot(np.arange(len(loss_record)), np.array(loss_record), label=f"loss-{loss_fn.__name__}")
-plt.plot(np.arange(len(loss_record)), np.array(err_record), label = f"error-{loss_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(train_loss_record), label = f"Train loss-{loss_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(train_err_record), label = f"Train error-{err_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(test_loss_record), label = f"Test loss-{loss_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(test_err_record), label = f"Test error-{err_fn.__name__}")
 plt.title(f"Training Loss, {epochs} epochs")
 plt.grid(True)
 plt.legend()
-plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_train_{model.__name__}_{potential}-potential_epoch{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}_energy-{keep_energy}_prob-{keep_prob}.png")
+plt.yscale('log')
+plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_train-{model.__name__}_{potential}-potential_epoch-{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_loss-{loss_fn.__name__}_l2-{optimizer.param_groups[0]["weight_decay"]}_linear-{linear}_energy-{keep_energy}_prob-{keep_prob}.png")
 plt.show()
 
 # Save the trained model
@@ -557,43 +629,61 @@ if keep_energy:
     model_filename += "_energy"
 if keep_prob:
     model_filename += "_prob"
-
+if linear:
+    model_filename += "_linear"
+else:
+    model_filename += "_nonlinear"
 full_path = os.path.join(model_save_path, model_filename+".pt")
 
 # Save the model
 torch.save({
     'model_state_dict': net.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
+    'linear':linear,
     'loss': loss.item(),
     'epoch': epochs,
     'loss_function': loss_fn.__name__, 
+    'error_function': err_fn.__name__,
+    'model': model.__name__,
     'lr': optimizer.param_groups[0]['lr'],
-    'train_losses': loss_record,
-    'train_errors': err_record,
+    'train_losses': train_loss_record,
+    'train_errors': train_err_record,
+    'test_losses': test_loss_record,
+    'test_errors': test_err_record,
+    
 }, full_path)
 
 print(f"Model saved to {full_path}")
 
+
+# Final testing 
+l2_err, l2_std = complex_l2_relative_error(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex64), std=True)
+prob_mse, prob_std = schro_prob_loss(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex64), std=True)
+energy_mse, energy_std = schro_energy_loss(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex64), std=True)
+print(f"Final L2 error: {l2_err:.6f} +- {l2_std:.6f}")
+print(f"Final probability error: {prob_mse:.6f} +- {prob_std:.6f}")
+print(f"Final energy error: {energy_mse:.6f} +- {energy_std:.6f}")
+
 # Testing on one initial condition
-X_test_fixed, y_test_fixed = schrodinger_system.gen_schro_fourier_fixed(num = num_test, sensors = nx)
+#X_test_fixed, y_test_fixed = schrodinger_system.gen_schro_fourier_fixed(num = , sensors = nx)
 #X_test_fixed, y_test_fixed = schrodinger_system.gen_schro_fourier_fixed_multi(nu = 1, nx = nx, nt = 50, potential=potential)
 
-with torch.no_grad():
-    y_pred_fixed = model(X_test_fixed,net).squeeze()
+#with torch.no_grad():
+#    y_pred_fixed = model(X_test_fixed,net).squeeze()
 
-err = err_fn(y_pred_fixed, torch.tensor(y_test_fixed, dtype = torch.complex64))
-print(f"Final {err_fn.__name__} error rate : {err.item():.6f}")
+#err = err_fn(y_pred_fixed, torch.tensor(y_test_fixed, dtype = torch.complex64))
+#print(f"Final {err_fn.__name__} error rate : {err.item():.6f}")
 
 
-y_pred_fixed_sol = ifft(y_pred_fixed.detach().numpy())
-y_test_fixed_sol = ifft(y_test_fixed)
+y_pred_fixed_sol = ifft(y_pred_test.detach().numpy(), axis=2)
+y_test_fixed_sol = ifft(y_test, axis=2)
 
 #y_pred_fixed_sol = ifft(torch.transpose(y_pred_fixed.squeeze(), 0, 1).detach().numpy())
 #y_test_fixed_sol = ifft(np.transpose(y_test_fixed[0]))
-
-plot_schrodinger_3d(y_pred_fixed_sol, y_test_fixed_sol, model,net, optimizer, x_max = 10, T = 1)
-plot_schrodinger_2d(y_pred_fixed_sol, y_test_fixed_sol, model, net, optimizer, x_max = 10, T = 1)
-plot_schrodinger_prob(y_pred_fixed_sol, y_test_fixed_sol, model, net, optimizer, x_max = 10, T = 1)
-plot_schrodinger_energy(y_pred_fixed.detach().numpy(), y_test_fixed, model, net, optimizer, x_max = 10, T = 1)
+i = 0
+plot_schrodinger_3d(y_pred_fixed_sol[i], y_test_fixed_sol[i], model,net, optimizer,loss_fn, keep_energy, keep_prob, linear, x_max = 10, T = 1)
+plot_schrodinger_2d(y_pred_fixed_sol[i], y_test_fixed_sol[i], model, net, optimizer, loss_fn,keep_energy, keep_prob, linear,x_max = 10, T = 1)
+plot_schrodinger_prob(y_pred_fixed_sol[i], y_test_fixed_sol[i], model, net, optimizer,loss_fn,keep_energy, keep_prob, linear, x_max = 10, T = 1)
+plot_schrodinger_energy(y_pred_test[i].detach().numpy(), y_test[i], model, net, loss_fn, keep_energy, keep_prob, linear, optimizer, x_max = 10, T = 1)
 print("Finished")
 
