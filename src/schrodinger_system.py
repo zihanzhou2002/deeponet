@@ -21,7 +21,7 @@ import numpy as np
 #   y (L x N): Corresponding u_i(x, t_i) for each i
 # =============================================================================================
 
-def gen_schro_fourier_fixed(num= 200, sensors = 500, potential = "zero", x_max = 10, x0=3.0, sigma=0.3, t0=0,tf=1):
+def gen_schro_data_fixed(num= 200, sensors = 500, potential = "zero", x_max = 10, x0=3.0, sigma=0.3, t0=0,tf=1):
     """ Generate the entire dynamics of one Schrodinger equations with fixed initial conditions
 
     Args:
@@ -892,6 +892,9 @@ def plot_schrodinger_3d(y_pred, y_true, model,net, optimizer, potential="zero", 
         x_max (float): upper bound of spatial domain. Defaults to 10.
         T (float): upper bound of temporal domain. Defaults to 1.
     """
+    global keep_energy
+    global keep_prob
+    
     fig, (ax1, ax2) = plt.subplots(1, 2, subplot_kw={'projection': '3d'})
     
     x = np.linspace(0, x_max, np.shape(y_true)[1])
@@ -904,9 +907,60 @@ def plot_schrodinger_3d(y_pred, y_true, model,net, optimizer, potential="zero", 
     ax2.plot_surface(x_grid, t_grid, np.abs(y_true)**2, rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
     ax2.set_title("Groundtruth Solution")
 
-    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_pred_{model.__name__}_potential-{potential}net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_pred_{model.__name__}_potential-{potential}net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}_energy-{keep_energy}_prob-{keep_prob}.png")
     plt.show()
+
+def plot_schrodinger_2d(y_pred, y_true, model,net, optimizer,potential="zero", x_max = 10, T = 1):
+    """ Plot the 3D plots of wave Equations. y_pred, y_true of the shape (nt, nx)
+
+    Args:
+        y_pred (nt, nx): predicted solution
+        y_true (nt, nx): actual solution
+        x_max (float): upper bound of spatial domain. Defaults to 10.
+        T (float): upper bound of temporal domain. Defaults to 1.
+    """
+    global keep_energy
+    global keep_prob
+    nx = np.shape(y_true)[1] 
+    nt = len(y_true)
+    x = np.linspace(0, x_max, nx)
+    t = np.linspace(0, T, nt)   
+    x_grid, t_grid  = np.meshgrid(x, t)
     
+    W = dft(nx)
+    W_inv = W.conj().T / nx
+    
+
+
+    
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4), constrained_layout=True)
+    y_pred_sol = y_pred@W_inv.T
+    y_true_sol = y_true@W_inv.T
+    max1 = np.max(np.abs(y_true_sol[:, 0:nx]))
+    max2 = np.max(np.abs(y_pred_sol[:, 0:nx]))
+    absmax = max(max1, max2)
+    absmax = max(absmax, 1e-10)
+    
+    pcm = ax1.pcolormesh(x_grid, t_grid, np.abs(y_true_sol)**2, shading='auto', cmap= cm.coolwarm)
+    ax1.set_title("Groundtruth Solution")
+    
+    pcm = ax2.pcolormesh(x_grid, t_grid, np.abs(y_pred_sol)**2, shading='auto', cmap= cm.coolwarm)
+    ax2.set_title("Predicted Solution")
+    
+    fig.colorbar(pcm, ax=ax2)  # optional: shows the color scale
+    
+    error = np.abs(y_pred_sol - y_true_sol)**2
+
+    absmax_err = np.max(np.abs(error))
+    absmax_err = max(absmax_err, 1e-10)
+    
+    pcm = ax3.pcolormesh(x_grid, t_grid,error, shading='auto', cmap= cm.bwr, vmin=-absmax_err, vmax = absmax_err)
+    ax3.set_title("Error")
+    fig.colorbar(pcm, ax=ax3)
+    plt.xlabel("x")
+    plt.ylabel("t")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_pred_2d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}_energy-{keep_energy}_prob-{keep_prob}.png")
+    plt.show()
     
 def plot_schrodinger_prob(y_pred, y_true, model, net, optimizer, potential="zero", x_max = 10, T = 1):
     """ Plot the 3D plots of Schrodinger's Equations. y_pred, y_true of the shape (nt, nx)
@@ -917,6 +971,8 @@ def plot_schrodinger_prob(y_pred, y_true, model, net, optimizer, potential="zero
         x_max (float): upper bound of spatial domain. Defaults to 10.
         T (float): upper bound of temporal domain. Defaults to 1.
     """
+    global keep_energy
+    global keep_prob
     dx = x_max / np.shape(y_pred)[1]
     fig = plt.figure()
     
@@ -928,14 +984,82 @@ def plot_schrodinger_prob(y_pred, y_true, model, net, optimizer, potential="zero
     plt.plot(t, prob_pred, label='predicted probabilities')
     plt.plot(t, prob_true, label='actual probabilities')
     plt.ylim(-2, 2)
+    plt.grid(True)
     plt.xlabel("Time")
     plt.ylabel("Probability")
     plt.legend()
     plt.title("Total Probability over Time")
-    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_prob_{model.__name__}_{potential}-potential_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_prob_{model.__name__}_{potential}-potential_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}_energy-{keep_energy}_prob-{keep_prob}.png")
+    plt.show()
+
+    
+def plot_schrodinger_energy(y_pred, y_true, model, net, optimizer,potential="zero", x_max = 10, T = 1):
+    """ Plot the 3D plots of Schrodinger's Equations. y_pred, y_true of the shape (nt, nx)
+
+    Args:
+        y_pred (nt, nx): predicted solution
+        y_true (nt, nx): actual solution
+        x_max (float): upper bound of spatial domain. Defaults to 10.
+        T (float): upper bound of temporal domain. Defaults to 1.
+    """
+    global keep_energy
+    global keep_prob
+    nx = np.shape(y_pred)[1]
+    nt = len(y_pred)
+    dx = x_max / (nx - 1)
+    #k = (2 * np.pi / x_max) * fftfreq(nx, dx)  # Correct physical frequencies
+    k = 2 * np.pi * fftfreq(nx, dx)
+    
+    W = dft(nx)
+    W_inv = W.conj().T / nx
+    
+    # Construct differentiation matrix
+    D = np.diag(1j * k)
+    
+    #y_pred_x = y_pred@D_large.conj().T
+    #y_true_x = y_true@D_large.conj().T
+    """
+    D = np.diag(1j * k)
+    D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
+
+    
+    y_true_x_sol = y_test_fixed[0]@D_large.conj().T@W_large_inv.conj().T
+    #y_true_x_sol = W_large_inv@D_large@y_test_fixed[0]
+    
+    fig = plt.figure()
+
+    x_grid, t_grid  = np.meshgrid(x, t)
+    
+    energy_true = dx*np.array([np.sum(c**2*np.abs(y[0:nx])**2) + np.sum(np.abs(y[nx:])**2) for y in y_true_x_sol])
+    """
+    y_pred_sol = ifft(y_pred)
+    y_true_sol = ifft(y_true)
+    y_pred_x_sol = ifft(y_pred@D.T)
+    y_true_x_sol = ifft(y_true@D.T)
+    
+    fig = plt.figure()
+    
+    t = np.linspace(0, T, nt)   
+    
+    energy_pred = dx*np.array([np.sum(np.abs(y_pred_x_sol[i])**2)*0.25 + np.sum(np.abs(y_pred_sol[i])**2) *0.25 for i in range(nt)])
+    energy_true = dx*np.array([np.sum(np.abs(y_true_x_sol[i])**2)*0.25 + np.sum(np.abs(y_true_sol[i])**2) *0.25 for i in range(nt)])
+    # Plot predicted solution
+    energy_max = max(np.max(np.abs(energy_true)), np.max(np.abs(energy_pred)))
+    
+    
+    plt.plot(t, energy_pred, label='predicted energy')
+    plt.plot(t, energy_true, label='actual energy')
+    plt.grid(True)
+    plt.xlabel("Time")
+    plt.ylim(0,15)
+    plt.ylabel("Energy")
+    plt.legend()
+    plt.title("Total Energy over Time")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\schro_prob_{model.__name__}_{potential}-potential_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}_energy-{keep_energy}_prob-{keep_prob}.png")
     plt.show()
     
-    
+
+"""
 def main():
         # Setup parameters
     L = 10  # Domain size
@@ -1008,3 +1132,4 @@ def main():
 
 if main() == "__main__":
     main()
+"""
