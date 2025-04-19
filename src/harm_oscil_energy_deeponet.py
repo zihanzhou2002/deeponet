@@ -439,13 +439,13 @@ def main():
                 err = err_fn(y_pred_test, torch.tensor(y_test, dtype=torch.float64))
                 
 
-        
+        loss_record.append(loss.item())
+        err_record.append(err.item())
         if (epoch + 1) % 1000 == 0:
                 
 
             print(f"Epoch {epoch + 1}, loss {loss.item() :.8f} , err{err.item():.8f}")
-            loss_record.append(loss.item())
-            err_record.append(err.item())
+
             #print(y_pred_energy)
             #print(f"Without energy - \n Energy fluctuation: {torch.linalg.vector_norm(0.5*(omega *y_pred_orig[:,0]**2 + y_pred_orig[:,1]**2) - E)}")
             #print(f"With energy - \n Energy fluctuation: {torch.linalg.vector_norm(0.5*(omega *y_pred_energy[:,0]**2 + y_pred_energy[:,1]**2) - E)}")
@@ -457,9 +457,32 @@ def main():
         
     
     print("Finished Training")
+    
+    # Save the model
+    model_save_path = "C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\trained_nets"
+    os.makedirs(model_save_path, exist_ok=True)
+
+    # Create a descriptive filename
+    model_filename = f"{model.__name__}_epoch{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_loss-{loss_fn.__name__}.pt"
+    full_path = os.path.join(model_save_path, model_filename)
+
+    # Save the model
+    torch.save({
+        'model_state_dict': net.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss.item(),
+        'epoch': epochs,
+        'loss_function': loss_fn.__name__, 
+        'lr': optimizer.param_groups[0]['lr'],
+        'train_losses': loss_record,
+        'train_errors': err_record,
+    }, full_path)
+
+    print(f"Model saved to {full_path}")
+
     plt.figure()
-    plt.plot(np.arange(len(loss_record)) * 1000, np.array(loss_record), label=f"loss-{loss_fn}")
-    plt.plot(np.arange(len(loss_record)) * 1000, np.array(err_record), label = f"error-{loss_fn}")
+    plt.plot(np.arange(len(loss_record)), np.array(loss_record), label=f"loss-{loss_fn}")
+    plt.plot(np.arange(len(loss_record)), np.array(err_record), label = f"error-{loss_fn}")
     plt.ylim(-0.1, 0.1)
     plt.title(f"Training Loss, {epochs} epochs")
     plt.legend()
