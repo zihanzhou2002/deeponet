@@ -778,22 +778,6 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     D = np.diag(1j * k)
     D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
     
-    #y_pred_x = y_pred@D_large.conj().T
-    #y_true_x = y_true@D_large.conj().T
-    """
-    D = np.diag(1j * k)
-    D_large = np.block([[D, np.zeros((nx, nx))], [np.zeros((nx, nx)), np.eye(nx)]])
-
-    
-    y_true_x_sol = y_test_fixed[0]@D_large.conj().T@W_large_inv.conj().T
-    #y_true_x_sol = W_large_inv@D_large@y_test_fixed[0]
-    
-    fig = plt.figure()
-
-    x_grid, t_grid  = np.meshgrid(x, t)
-    
-    energy_true = dx*np.array([np.sum(c**2*np.abs(y[0:nx])**2) + np.sum(np.abs(y[nx:])**2) for y in y_true_x_sol])
-    """
     
     y_pred_x_sol = y_pred@D_large.conj().T@W_large_inv.conj().T
     y_true_x_sol = y_true@D_large.conj().T@W_large_inv.conj().T
