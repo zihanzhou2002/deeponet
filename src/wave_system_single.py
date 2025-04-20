@@ -333,28 +333,27 @@ def solve_wave_whole_fourier_CK(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500)
 
 
 def raised_cosine_edges(N, edge_ratio=0.1):
-    """Window that is 1 in the middle and tapers to 0 at edges
+    """
+    Create a window that is 1 in the middle and tapers to 0 at the edges.
     
     Args:
-        N (int): Length of the window
-        edge_ratio (float): Portion of the signal at each edge to taper (0 to 0.5)
-        
+        N: Length of the window
+        edge_ratio: Portion of the window (on each side) that tapers
+    
     Returns:
-        numpy.ndarray: Window function with values between 0 and 1
+        window: Array of length N
     """
     window = np.ones(N)
-    edge_points = int(edge_ratio * (N-1))
+    edge_width = int(N * edge_ratio)
     
-    # Left edge taper
-    left_x = np.arange(edge_points)/edge_points
-    left_taper = 0.5 * (1 - np.cos(np.pi * left_x))
-    window[:edge_points] = left_taper
-    
-    # Right edge taper
-    right_x = np.arange(edge_points)/edge_points
-    right_taper = 0.5 * (1 + np.cos(np.pi * right_x))
-    window[-edge_points:] = right_taper
-    
+    # Left edge (taper from 0 to 1)
+    for i in range(edge_width):
+        window[i] = 0.5 * (1 - np.cos(np.pi * i / edge_width))
+        
+    # Right edge (taper from 1 to 0)
+    for i in range(edge_width):
+        window[N - i - 1] = 0.5 * (1 - np.cos(np.pi * i / edge_width))
+        
     return window
 
 # ============================================================================================
@@ -484,7 +483,7 @@ def gen_wave_fourier_rand_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, 
 
 
 
-def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, tf=1, window_ratio = 0.1):
+def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, tf=1):
     """ Generate random initial conditions and their corresponding behaviour at different times
 
     Args:
@@ -504,7 +503,7 @@ def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 
     x = np.linspace(0, x_max, Nx)   # spatial grid points
     c = 1.0
     # Range of randomized sigmas and x0s
-    window = raised_cosine_edges(Nx, edge_ratio=window_ratio)
+    window = np.sin(np.pi * x / x_max)**2
     
     # Range of randomized sigmas and x0s
     space = GRF(x_max, kernel="RBF", length_scale=0.1, N=Nx, interp="cubic")
@@ -540,7 +539,7 @@ def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 
     return (initial_data, t_points), y_data
 
 
-def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_max = 10, tf=1, window_ratio = 0.1):
+def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_max = 10, tf=1):
     """ Generate random initial conditions for multiple times
 
     Args:
@@ -560,7 +559,7 @@ def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_m
     x = np.linspace(0, x_max, Nx)   # spatial grid points
     c = 1.0
     # Range of randomized sigmas and x0s
-    window = raised_cosine_edges(Nx, edge_ratio=window_ratio)
+    window = np.sin(np.pi * x / x_max)**2
     
     # Range of randomized sigmas and x0s
     space = GRF(x_max, kernel="RBF", length_scale=0.1, N=Nx, interp="cubic")
@@ -890,18 +889,18 @@ def main():
     W_large_inv = np.kron(np.eye(2), W_inv)
     #print(f"W inv{W_large_inv.shape}")
     #print(f"y_pred {y_pred.shape}")
-    y_true_sol = y_test_fixed[0]@W_large_inv.conj().T # for single
+    y_true_sol = y_test_fixed@W_large_inv.T # for single
     #y_true_sol = W_large_inv@y_test_fixed[0] # for whole
-
+    j = 0
     
     fig, ax = plt.subplots(1, 1, subplot_kw={'projection': '3d'})
-    ax.plot_surface(x_grid, t_grid, y_true_sol[:, 0:nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
+    ax.plot_surface(x_grid, t_grid, y_true_sol[j, :, 0:nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
     plt.show()
     plt.close()
     
 
     fig, ax = plt.subplots()
-    pcm = ax.pcolormesh(x_grid, t_grid, y_true_sol[:, 0:nx].real, shading='auto', cmap= cm.coolwarm)
+    pcm = ax.pcolormesh(x_grid, t_grid, y_true_sol[j,:, 0:nx].real, shading='auto', cmap= cm.coolwarm)
     fig.colorbar(pcm, ax=ax)  # optional: shows the color scale
     plt.xlabel("x")
     plt.ylabel("t")
