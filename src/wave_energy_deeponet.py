@@ -506,12 +506,12 @@ print("Dataset generated")
 
 # Prescribe initializer, model, and loss function
 
-#loss_fn = complex_mse_loss
 loss_fn = complex_mse_loss
+#loss_fn = wave_mse_energy_loss
 err_fn = complex_l2_relative_error
 #model = model_wave_energy_simple
-#model = model_wave_energy_multi
-model = model_wave_multi
+model = model_wave_energy_multi
+#model = model_wave_multi
 #optimizer = torch.optim.Adam(net.parameters(), lr=0.001)# , weight_decay=1e-4)
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 #optimizer = torch.optim.LBFGS(net.parameters(), lr=1e-2)
@@ -539,10 +539,10 @@ for epoch in range(epochs):
     loss = loss_fn(y_pred_train.squeeze(), torch.tensor(y_train, dtype=torch.complex128))
     
     with torch.no_grad():
-        train_err = err_fn(y_pred_train.squeeze(), torch.tensor(y_train, dtype=torch.complex64))
+        train_err = err_fn(y_pred_train.squeeze(), torch.tensor(y_train, dtype=torch.complex128))
         y_pred_test = model(X_test, net,c=c, x_max = L)
-        test_err = err_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype = torch.complex64))
-        test_loss = loss_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex64))
+        test_err = err_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype = torch.complex128))
+        test_loss = loss_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex128))
 
    
     if (epoch + 1) % 1000 == 0:
