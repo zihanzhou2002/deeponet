@@ -331,6 +331,32 @@ def solve_wave_whole_fourier_CK(u0, v0,c, L = 10.0, T = 1.0, Nx = 100, Nt = 500)
     result = np.stack((us_hat, vs_hat), axis=2)
     return result
 
+
+def raised_cosine_edges(N, edge_ratio=0.1):
+    """Window that is 1 in the middle and tapers to 0 at edges
+    
+    Args:
+        N (int): Length of the window
+        edge_ratio (float): Portion of the signal at each edge to taper (0 to 0.5)
+        
+    Returns:
+        numpy.ndarray: Window function with values between 0 and 1
+    """
+    window = np.ones(N)
+    edge_points = int(edge_ratio * (N-1))
+    
+    # Left edge taper
+    left_x = np.arange(edge_points)/edge_points
+    left_taper = 0.5 * (1 - np.cos(np.pi * left_x))
+    window[:edge_points] = left_taper
+    
+    # Right edge taper
+    right_x = np.arange(edge_points)/edge_points
+    right_taper = 0.5 * (1 + np.cos(np.pi * right_x))
+    window[-edge_points:] = right_taper
+    
+    return window
+
 # ============================================================================================
 # Functions for generating triplet datasets
 # ============================================================================================
@@ -458,7 +484,7 @@ def gen_wave_fourier_rand_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, 
 
 
 
-def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, tf=1):
+def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 10, tf=1, window_ratio = 0.1):
     """ Generate random initial conditions and their corresponding behaviour at different times
 
     Args:
@@ -478,8 +504,14 @@ def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 
     x = np.linspace(0, x_max, Nx)   # spatial grid points
     c = 1.0
     # Range of randomized sigmas and x0s
+    window = raised_cosine_edges(Nx, edge_ratio=window_ratio)
+    
+    # Range of randomized sigmas and x0s
     space = GRF(x_max, kernel="RBF", length_scale=0.1, N=Nx, interp="cubic")
-    u0s = space.random(num)
+    u0s_raw = space.random(num)
+    
+    # Apply window to ensure zero boundary conditions
+    u0s = np.array([u0_raw * window for u0_raw in u0s_raw])
     
     t = np.linspace(0, tf, Nt)
     
@@ -508,7 +540,7 @@ def gen_wave_fourier_rand_GRF_fixed_speed(num = 200, Nx= 500, Nt = 800, x_max = 
     return (initial_data, t_points), y_data
 
 
-def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_max = 10, tf=1):
+def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_max = 10, tf=1, window_ratio = 0.1):
     """ Generate random initial conditions for multiple times
 
     Args:
@@ -528,8 +560,14 @@ def gen_wave_fourier_rand_GRF_fixed_speed_multi(Nu = 200, Nx= 500, Nt = 800, x_m
     x = np.linspace(0, x_max, Nx)   # spatial grid points
     c = 1.0
     # Range of randomized sigmas and x0s
+    window = raised_cosine_edges(Nx, edge_ratio=window_ratio)
+    
+    # Range of randomized sigmas and x0s
     space = GRF(x_max, kernel="RBF", length_scale=0.1, N=Nx, interp="cubic")
-    u0s = space.random(Nu)
+    u0s_raw = space.random(Nu)
+    
+    # Apply window to ensure zero boundary conditions
+    u0s = np.array([u0_raw * window for u0_raw in u0s_raw])
     
     ts = np.linspace(0, tf, Nt)
 
@@ -663,7 +701,7 @@ def gen_wave_fourier_init_fixed_speed(num = 200, sigma = 0.3, x0 = 5.0, c = 1, N
 # ===========================================================================================
 
 
-def plot_wave_3d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
+def plot_wave_3d(y_pred, y_true, model,net, optimizer, loss_fn, x_max = 10, T = 1):
     """ Plot the 3D plots of wave Equations. y_pred, y_true of the shape (nt, nx)
 
     Args:
@@ -695,13 +733,19 @@ def plot_wave_3d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     # Plot predicted solution
     ax1.plot_surface(x_grid, t_grid, y_pred_sol[:, 0: nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
     ax1.set_title("Predicted Solution")
+    ax1.set_xlabel("x")
+    ax1.set_ylabel("t")
+    ax1.set_zlabel("u(x,t)")
     ax2.plot_surface(x_grid, t_grid, y_true_sol[:, 0 : nx], rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
     ax2.set_title("Groundtruth Solution")
+    ax2.set_xlabel("x")
+    ax2.set_ylabel("t")
+    ax2.set_zlabel("u(x,t)")
 
-    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_3d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_3d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_loss-{loss_fn.__name__}_l2-{optimizer.param_groups[0]["weight_decay"]}")
     plt.show()
     
-def plot_wave_2d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
+def plot_wave_2d(y_pred, y_true, model,net, optimizer,loss_fn, x_max = 10, T = 1):
     """ Plot the 3D plots of wave Equations. y_pred, y_true of the shape (nt, nx)
 
     Args:
@@ -735,26 +779,30 @@ def plot_wave_2d(y_pred, y_true, model,net, optimizer, x_max = 10, T = 1):
     
     pcm = ax1.pcolormesh(x_grid, t_grid, y_true_sol[:, 0:nx].real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
     ax1.set_title("Groundtruth Solution")
-    
+    ax1.set_xlabel("x")
+    ax1.set_ylabel("t")
     pcm = ax2.pcolormesh(x_grid, t_grid, y_pred_sol[:, 0:nx].real, shading='auto', cmap= cm.coolwarm, vmin=-absmax, vmax=absmax)
     ax2.set_title("Predicted Solution")
-    
+    ax2.set_xlabel("x")
+    ax2.set_ylabel("t")
     fig.colorbar(pcm, ax=ax2)  # optional: shows the color scale
     
     error = y_pred_sol[:, 0:nx].real - y_true_sol[:, 0:nx].real
 
     absmax_err = np.max(np.abs(error))
     absmax_err = max(absmax_err, 1e-10)
-    pcm = ax3.pcolormesh(x_grid, t_grid,error, shading='bwr', cmap= cm.bwr, vmin=-absmax_err, vmax = absmax_err)
+    pcm = ax3.pcolormesh(x_grid, t_grid,error, shading='auto', cmap= cm.bwr, vmin=-absmax_err, vmax = absmax_err)
     ax3.set_title("Error")
+    ax3.set_xlabel("x")
+    ax3.set_ylabel("t")
     fig.colorbar(pcm, ax=ax3)
     plt.xlabel("x")
     plt.ylabel("t")
-    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_2d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_pred_2d_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_loss_fn-{loss_fn.__name__}_l2-{optimizer.param_groups[0]["weight_decay"]}")
     plt.show()
 
     
-def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1):
+def plot_wave_energy(y_pred, y_true, model, net, optimizer, loss_fn, c, x_max = 10, T = 1):
     """ Plot the 3D plots of Schrodinger's Equations. y_pred, y_true of the shape (nt, nx)
 
     Args:
@@ -763,7 +811,6 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
         x_max (float): upper bound of spatial domain. Defaults to 10.
         T (float): upper bound of temporal domain. Defaults to 1.
     """
-    
     nx = int(np.shape(y_pred)[1] / 2)
     dx = x_max / (nx - 1)
     #k = (2 * np.pi / x_max) * fftfreq(nx, dx)  # Correct physical frequencies
@@ -800,11 +847,11 @@ def plot_wave_energy(y_pred, y_true, model, net, optimizer,c, x_max = 10, T = 1)
     plt.ylabel("Energy")
     plt.legend()
     plt.title("Total Energy over Time")
-    #plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_energy_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+    plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_energy_{model.__name__}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_loss-{loss_fn.__name__}_l2-{optimizer.param_groups[0]["weight_decay"]}")
     plt.show()
     
     
-    
+"""
 def main():
     num = 201
     nx = 20
@@ -889,3 +936,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
