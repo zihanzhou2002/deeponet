@@ -342,33 +342,39 @@ def complex_mse_loss(pred, target):
     # Total loss is sum of both parts
     return mse_real + mse_imag
 
-def complex_l2_relative_error(pred, target):
+def complex_l2_relative_error(pred, target, std=False):
     """
     Compute the L2 relative error for complex-valued tensors.
 
     Parameters:
-        pred (torch.Tensor): Predicted complex tensor (dtype=torch.complex128 or torch.complex128)
+        pred (torch.Tensor): Predicted complex tensor (dtype=torch.complex64 or torch.complex128)
         target (torch.Tensor): Target complex tensor (same shape and dtype as pred)
 
     Returns:
         torch.Tensor: Scalar tensor (the relative error)
     """
     # Compute squared magnitude difference
+    num_samples = pred.shape[0]
     error = pred - target
-    error_norm = torch.sum(error.real**2 + error.imag**2)
+    l2_err = torch.zeros(num_samples, dtype=torch.float64, device=target.device)
+    for i in range(num_samples):
+        
+        error_norm = torch.sum(error[i].real**2 + error[i].imag**2)
+        # Compute squared magnitude of target
+        target_norm = torch.sum(target[i].real**2 + target[i].imag**2)
+        # Avoid divide-by-zero (in case the target is all zeros, though this is rare)
+        if target_norm == 0:
+            return torch.tensor(float('inf'), device=target.device)
+        # Relative L2 error
+        rel_error = torch.sqrt(error_norm / target_norm)
+        l2_err[i] = rel_error
+    
+    if std:
+        return torch.mean(l2_err), torch.std(l2_err)
 
-    # Compute squared magnitude of target
-    target_norm = torch.sum(target.real**2 + target.imag**2)
+    return torch.mean(l2_err)
 
-    # Avoid divide-by-zero (in case the target is all zeros, though this is rare)
-    if target_norm == 0:
-        return torch.tensor(float('inf'), device=target.device)
-
-    # Relative L2 error
-    rel_error = torch.sqrt(error_norm / target_norm)
-    return rel_error
-
-def wave_energy_loss(y_pred, y_true):
+def wave_energy_loss(y_pred, y_true,std=False):
     """
     Compute the MSE loss for complex-valued tensors.
     
@@ -379,9 +385,9 @@ def wave_energy_loss(y_pred, y_true):
     Returns:
         torch.Tensor: Scalar tensor (the mean squared error)
     """
-    global x_max, c
-    nx = int(y_pred.shape[1] / 2)
-    dx = x_max / (nx - 1)
+    global L, c
+    nx = int(y_pred.shape[-1] / 2)
+    dx = L / (nx - 1)
     
     # DFT matrix W
     W_np = dft(nx)
@@ -399,56 +405,19 @@ def wave_energy_loss(y_pred, y_true):
     D_large = torch.block_diag(D, torch.eye(nx, dtype=torch.complex128))
     
     
-    y_pred_x_sol = y_pred@D_large.conj().T@W_large_inv.conj().T
-    y_true_x_sol = y_true@D_large.conj().T@W_large_inv.conj().T
+    y_pred_x_sol = y_pred@D_large.T@W_large_inv.T
+    y_true_x_sol = y_true@D_large.T@W_large_inv.T
     
-    energy_pred = dx*(torch.sum(c**2*torch.abs(y_pred_x_sol[:, 0: nx])**2,dim=1) + torch.sum(torch.abs(y_pred_x_sol[:, nx:])**2, dim=1)).to(torch.complex128)
-    energy_true = dx*(torch.sum(c**2*torch.abs(y_true_x_sol[:, 0: nx])**2,dim=1) + torch.sum(torch.abs(y_true_x_sol[:, nx:])**2, dim=1)).to(torch.complex128)
+    energy_pred = dx*(torch.sum(c**2*torch.abs(y_pred_x_sol[:,:, 0: nx])**2,dim=-1) + torch.sum(torch.abs(y_pred_x_sol[:, :, nx:])**2, dim=-1)).to(torch.complex128)
+    energy_true = dx*(torch.sum(c**2*torch.abs(y_true_x_sol[:,:, 0: nx])**2,dim=-1) + torch.sum(torch.abs(y_true_x_sol[:,:, nx:])**2, dim=-1)).to(torch.complex128)
     
-    error = torch.mean(torch.abs(energy_pred - energy_true)**2)
+    energy_err = torch.abs(energy_pred - energy_true)**2
+    
+    if std:
+        return torch.mean(energy_err), torch.std(energy_err)
 
-    return error
+    return torch.mean(energy_err)
 
-def wave_energy_loss(y_pred, y_true):
-    """
-    Compute the MSE loss for complex-valued tensors.
-    
-    Parameters:
-        pred (torch.Tensor): Predicted complex tensor (dtype=torch.complex128 or torch.complex128)
-        target (torch.Tensor): Target complex tensor (same shape and dtype as pred)
-
-    Returns:
-        torch.Tensor: Scalar tensor (the mean squared error)
-    """
-    global x_max, c
-    nx = int(y_pred.shape[1] / 2)
-    dx = x_max / (nx - 1)
-    
-    # DFT matrix W
-    W_np = dft(nx)
-    W = torch.tensor(W_np, dtype=torch.complex128)
-    W_inv_np = W_np.conj().T / nx
-    W_inv = torch.tensor(W_inv_np, dtype=torch.complex128).contiguous()
-    
-    #W_large = torch.kron(torch.eye(2, dtype=torch.complex128), W)
-    W_large_inv = torch.kron(torch.eye(2, dtype=torch.complex128), W_inv)
-    
-    # Differentiation matrix D
-    k_np = (2 * np.pi ) * fftfreq(nx, dx)
-    k = torch.tensor(k_np, dtype=torch.complex128)
-    D = torch.diag(1j * k)
-    D_large = torch.block_diag(D, torch.eye(nx, dtype=torch.complex128))
-    
-    
-    y_pred_x_sol = y_pred@D_large.conj().T@W_large_inv.conj().T
-    y_true_x_sol = y_true@D_large.conj().T@W_large_inv.conj().T
-    
-    energy_pred = dx*(torch.sum(c**2*torch.abs(y_pred_x_sol[:, 0: nx])**2,dim=1) + torch.sum(torch.abs(y_pred_x_sol[:, nx:])**2, dim=1)).to(torch.complex128)
-    energy_true = dx*(torch.sum(c**2*torch.abs(y_true_x_sol[:, 0: nx])**2,dim=1) + torch.sum(torch.abs(y_true_x_sol[:, nx:])**2, dim=1)).to(torch.complex128)
-    
-    error = torch.mean(torch.abs(energy_pred - energy_true)**2)
-
-    return error
 
 def wave_mse_energy_loss(y_pred, y_true):
     return complex_mse_loss(y_pred, y_true) + wave_energy_loss(y_pred, y_true)
@@ -538,15 +507,15 @@ print("Dataset generated")
 # Prescribe initializer, model, and loss function
 
 #loss_fn = complex_mse_loss
-loss_fn = complex_l2_relative_error
+loss_fn = complex_mse_loss
 err_fn = complex_l2_relative_error
 #model = model_wave_energy_simple
-model = model_wave_energy_multi
-#model = model_wave_multi
+#model = model_wave_energy_multi
+model = model_wave_multi
 #optimizer = torch.optim.Adam(net.parameters(), lr=0.001)# , weight_decay=1e-4)
-optimizer = torch.optim.Adam(net.parameters(), lr=1e-2)
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 #optimizer = torch.optim.LBFGS(net.parameters(), lr=1e-2)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=100)
+#scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=100)
 
 print("Model:", model.__name__, "\n")
 print("Optimizer:", optimizer, "\n")
@@ -555,11 +524,11 @@ print("Initialized ")
 print("Start training")
 
 # Training the model
-loss_record = []
-err_record = []
-
-
-
+# Training the model
+train_loss_record = []
+test_loss_record = []
+train_err_record = []
+test_err_record = []
 
 
 for epoch in range(epochs):
@@ -570,20 +539,25 @@ for epoch in range(epochs):
     loss = loss_fn(y_pred_train.squeeze(), torch.tensor(y_train, dtype=torch.complex128))
     
     with torch.no_grad():
-        y_pred_test = model(X_test, net, c=c, x_max = L)
-        err = err_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype = torch.complex128))
+        train_err = err_fn(y_pred_train.squeeze(), torch.tensor(y_train, dtype=torch.complex64))
+        y_pred_test = model(X_test, net,c=c, x_max = L)
+        test_err = err_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype = torch.complex64))
+        test_loss = loss_fn(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex64))
 
    
     if (epoch + 1) % 1000 == 0:
 
-        print(f"Epoch {epoch + 1}, loss {loss.item() :.6f}, err = {err.item():.6f}")
+        print(f"Epoch {epoch + 1}, loss {loss.item() :.6f}, train_error = {train_err.item():.6f}, test error = {test_err.item():.6f}")
         
-    loss_record.append(loss.item())
-    err_record.append(err.item())
+    train_loss_record.append(loss.item())
+    train_err_record.append(train_err.item())
+    test_loss_record.append(test_loss.item())
+    test_err_record.append(test_err.item())
+    
     loss.backward()
     #print(loss)
     optimizer.step()
-    scheduler.step(loss)
+    #scheduler.step(loss)
     
     if (epoch + 1) % 1000 == 0:
         current_lr = optimizer.param_groups[0]['lr']
@@ -591,12 +565,15 @@ for epoch in range(epochs):
     
 
 print("Finished Training")
-plt.plot(np.arange(len(loss_record)), np.array(loss_record), label=f"loss-{loss_fn.__name__}")
-plt.plot(np.arange(len(loss_record)), np.array(err_record), label = f"error-{loss_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(train_loss_record), label=f"Train loss-{loss_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(train_err_record), label = f"Train error-{err_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(test_loss_record), label = f"Test loss-{loss_fn.__name__}")
+plt.plot(np.arange(len(train_loss_record)), np.array(test_err_record), label = f"Test error-{err_fn.__name__}")
 plt.title(f"Training Loss, {epochs} epochs")
 plt.grid(True)
 plt.legend()
-plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_train_{model.__name__}_epoch{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_l2-{optimizer.param_groups[0]["weight_decay"]}")
+plt.yscale('log')
+plt.savefig(f"C:\\Users\\zzh\\Desktop\\Oxford\\dissertation\\deeponet\\plots\\wave_train_{model.__name__}_epoch{epochs}_net-{net.branch.linears[-1].out_features}-{net.trunk.linears[-1].out_features}_loss-{loss_fn.__name__}_l2-{optimizer.param_groups[0]["weight_decay"]}")
 plt.show()
 
 
@@ -615,9 +592,13 @@ torch.save({
     'loss': loss.item(),
     'epoch': epochs,
     'loss_function': loss_fn.__name__, 
+    'error_function': err_fn.__name__,
+    'model': model.__name__,
     'lr': optimizer.param_groups[0]['lr'],
-    'train_losses': loss_record,
-    'train_errors': err_record,
+    'train_losses': train_loss_record,
+    'train_errors': train_err_record,
+    'test_losses': test_loss_record,
+    'test_errors': test_err_record
 }, full_path)
 
 print(f"Model saved to {full_path}")
@@ -625,11 +606,11 @@ print(f"Model saved to {full_path}")
 #X_test_fixed, y_test_fixed = wave_system_single.gen_wave_fourier_init_fixed_speed(num = 400, Nx = nx, x_max = L, tf = T)
 #X_test_fixed, y_test_fixed = schrodinger_system.gen_schro_fourier_fixed_multi(nu = 1, nx = nx, nt = 50)
 
-with torch.no_grad():
-    y_pred_fixed = model(X_test,net,c,L).squeeze()
-
-err = err_fn(y_pred_fixed, torch.tensor(y_test, dtype = torch.complex128))
-print(f"Final {err_fn.__name__} error rate : {err.item():.6f}")
+# Final testing 
+l2_err, l2_std = complex_l2_relative_error(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex128), std=True)
+energy_mse, energy_std = wave_energy_loss(y_pred_test.squeeze(), torch.tensor(y_test, dtype=torch.complex128), std=True)
+print(f"Final L2 error: {l2_err:.6f} +- {l2_std:.6f}")
+print(f"Final energy error: {energy_mse:.6f} +- {energy_std:.6f}")
 
 
 #y_pred_fixed_sol = ifft(y_pred_fixed.detach().numpy())
@@ -637,9 +618,11 @@ print(f"Final {err_fn.__name__} error rate : {err.item():.6f}")
 
 #y_pred_fixed_sol = np.hstack((ifft(y_pred_fixed[:, 0: nx].detach().numpy(), axis = 1) , ifft(y_pred_fixed[:, nx: ].detach().numpy(), axis = 1)))
 #y_test_fixed_sol = np.hstack((ifft(y_test_fixed[:, 0: nx], axis = 1), ifft(y_pred_fixed[:, nx:], axis=1)))
-
-wave_system_single.plot_wave_2d(y_pred_fixed[0].detach().numpy(), y_test[0], model,net, optimizer, x_max = L, T = T)
-wave_system_single.plot_wave_energy(y_pred_fixed[0].detach().numpy(), y_test[0], model, net, optimizer,c = c, x_max = L, T = T)
+i = 0
+i= 20
+wave_system_single.plot_wave_3d(y_pred_test[i].detach().numpy(), y_test[i], model,net, optimizer,loss_fn, x_max = L, T = T)
+wave_system_single.plot_wave_2d(y_pred_test[i].detach().numpy(), y_test[i], model,net, optimizer,loss_fn, x_max = L, T = T)
+wave_system_single.plot_wave_energy(y_pred_test[i].detach().numpy(), y_test[i], model, net, optimizer, loss_fn, c = c, x_max = L, T = T)
 
 print("Finished")
 
