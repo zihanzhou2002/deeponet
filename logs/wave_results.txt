@@ -1,6 +1,6 @@
-model_wave_energy_multi_epoch10000_net-800-20_loss-complex_mse_loss.pt
+model_wave_energy_multi_epoch10000_net-800-20_loss-complex_mse_loss.pt (1h 11m 18s)
 ----------------------------------------------------------------------------------------
-Final L2 error: 0.040866 +- 0.007223
+Final L2 error: 0.030230 +- 0.006494
 Final energy error: 0.000000 +- 0.000000
 
 
@@ -15,3 +15,8 @@ Final L2 error: 0.125046 +- 0.020222
 Final energy error: 36.935675 +- 101.035619
 
 
+
+model_wave_energy_multi_epoch50000_net-800-20_loss-complex_mse_loss.pt (4h 34m 18s)
+----------------------------------------------------------------------------------------
+Final L2 error: 0.025532 +- 0.006608
+Final energy error: 0.000000 +- 0.000000
