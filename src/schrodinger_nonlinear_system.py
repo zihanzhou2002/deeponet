@@ -40,7 +40,7 @@ def solve_nonlinear_schro_CK(psi_initial, Nx, Nt, V, L = 10, T=1, ):
     """
     
     dx = L / (Nx - 1)
-    x = np.linsapce(0, L, Nx)
+    x = np.linspace(0, L, Nx)
     
     dt = T / (Nt - 1)  # Time step size
     t = np.linspace(0, T, Nt)
@@ -170,11 +170,11 @@ def gen_schro_nonlinear_fourier_rand(num = 200, sensors= 500, Nt = 800, x_max = 
     hbar = 1
     
     # Range of randomized sigmas and x0s
-    sigma_min = 0.2
-    sigma_max = 2.0
+    sigma_min = 0.4
+    sigma_max = 1.0
     
-    x0_min = 1.0
-    x0_max = 9.0
+    x0_min = 4.0
+    x0_max = 6.0
     
     
     # Potential V(x)
@@ -207,6 +207,7 @@ def gen_schro_nonlinear_fourier_rand(num = 200, sensors= 500, Nt = 800, x_max = 
 
         # Initial Wavefunction
         psi0 = np.sqrt(A) * np.exp(-(x-x0)**2 / (2.0 * sigma**2)) * np.exp(1j * kx * x)
+        psi0[np.abs(psi0) < 0.001] = 0.0
         
         t_ind = t_inds[i]
         sol = solve_nonlinear_schro_CK(psi0, sensors, Nt, V=V, L=x_max, T=tf)
@@ -231,11 +232,11 @@ def gen_schro_nonlinear_fourier_rand_multi(nu = 200, nx = 100, potential = "zero
     hbar = 1
     
     # Range of randomized sigmas and x0s
-    sigma_min = 0.2
-    sigma_max = 2.0
+    sigma_min = 0.4
+    sigma_max = 1.0
     
-    x0_min = 1.0
-    x0_max = 9.0
+    x0_min = 4.0
+    x0_max = 6.0
     
     
     # Potential V(x)
@@ -267,7 +268,7 @@ def gen_schro_nonlinear_fourier_rand_multi(nu = 200, nx = 100, potential = "zero
 
         # Initial Wavefunction
         psi0 = np.sqrt(A) * np.exp(-(x-x0)**2 / (2.0 * sigma**2)) * np.exp(1j * kx * x)
-        
+        psi0[np.abs(psi0) < 0.001] = 0.0
         sol = solve_nonlinear_schro_CK(psi0, nx, nt, V=V, L=x_max, T=tf)
         initial_data[i] = psi0
         y_data[i, :, :] = sol
@@ -319,15 +320,20 @@ def main():
     
     energy = dx*np.array([np.sum(np.abs(psi_sol[i])**2)*0.25 + np.sum(np.abs(psi_x_sol[i])**2) *0.25 for i in range(nt)])
     
-
-    # Plot results
-    plt.figure(figsize=(12, 6))
+        
+    x_grid, t_grid  = np.meshgrid(x, t)
+    fig, ax = plt.subplots(1, 1, subplot_kw={'projection': '3d'})
+    ax.plot_surface(x_grid, t_grid, np.abs(psi_sol)**2, rstride=1, cstride=1,cmap = cm.coolwarm, edgecolor="none")
+    plt.show()
+    plt.close()
     
-    # Plot initial, middle, and final probability densities
-    plt.plot(x, np.abs(ifft(initial_data_hat[0]))**2, label='Initial')
-    #plt.plot(x, np.abs(psi_sol[nt//2])**2, label=f'Middle (t={nt*dt/2:.1f})')
-    #plt.plot(x, np.abs(psi_sol[-1])**2, label=f'Final (t={nt*dt:.1f})')
-    plt.plot(x, np.abs(psi_sol[0])**2, label=f'Final (t={nt*dt:.1f})')
+    fig, ax = plt.subplots()
+    pcm = ax.pcolormesh(x_grid, t_grid, np.abs(psi_sol)**2, shading='auto', cmap= cm.coolwarm)
+    fig.colorbar(pcm, ax=ax)  # optional: shows the color scale
+    plt.xlabel("x")
+    plt.ylabel("t")
+    plt.title("Solution Heatmap")
+    plt.show()
     
     plt.title('Schrödinger Equation: Probability Density Evolution')
     plt.xlabel('Position')
@@ -336,6 +342,8 @@ def main():
     plt.grid(True)
     plt.show()
     plt.close() 
+
+
     
 
     prob_true = np.array([np.sum(np.abs(y)**2 * dx) for y in psi_sol])
