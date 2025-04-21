@@ -8,7 +8,7 @@ import numpy as np
 import itertools
 
 import numpy as np
-
+import time
 import tensorflow as tf
 import os
 import matplotlib.pyplot as plt
@@ -434,12 +434,12 @@ lr = 0.001
 
 #num_train = 500
 #num_test = 100
-num_train = 500
-num_test= 100
+num_train = 800
+num_test= 200
 #epochs = 1
 #epochs = 500
 #epochs = 50000
-epochs = 10000
+epochs = 25000
 nt = 50
 
 # Network
@@ -530,6 +530,7 @@ test_loss_record = []
 train_err_record = []
 test_err_record = []
 
+start_time = time.time()
 
 for epoch in range(epochs):
     optimizer.zero_grad()
@@ -563,8 +564,21 @@ for epoch in range(epochs):
         current_lr = optimizer.param_groups[0]['lr']
         print(f"Learning Rate: {current_lr:.6e}")
     
+end_time = time.time()
+elapsed_time = end_time - start_time
 
-print("Finished Training")
+end_time = time.time()
+elapsed = int(end_time - start_time)
+
+h = elapsed // 3600
+m = (elapsed % 3600) // 60
+s = elapsed % 60
+# Convert
+minutes = elapsed_time / 60
+hours = elapsed_time / 3600
+
+print(f"Finished Training, {h}h {m}m {s}s")
+      
 plt.plot(np.arange(len(train_loss_record)), np.array(train_loss_record), label=f"Train loss-{loss_fn.__name__}")
 plt.plot(np.arange(len(train_loss_record)), np.array(train_err_record), label = f"Train error-{err_fn.__name__}")
 plt.plot(np.arange(len(train_loss_record)), np.array(test_loss_record), label = f"Test loss-{loss_fn.__name__}")
