@@ -4,19 +4,30 @@ Final L2 error: 0.030230 +- 0.006494
 Final energy error: 0.000000 +- 0.000000
 
 
-model_wave_multi_epoch10000_net-800-20_loss-complex_mse_loss.pt
+model_wave_multi_epoch10000_net-800-20_loss-complex_mse_loss.pt (0h 58m 11s)
 ----------------------------------------------------------------------------------------
-Final L2 error: 0.038970 +- 0.005501
-Final energy error: 6.217146 +- 14.227003
+Final L2 error: 0.030060 +- 0.007973
+Final energy error: 0.637521 +- 1.508770
 
-model_wave_multi_epoch10000_net-800-20_loss-wave_mse_energy_loss.pt
+model_wave_multi_epoch10000_net-800-20_loss-wave_mse_energy_loss.pt (1h 24m 20s)
 ----------------------------------------------------------------------------------------
-Final L2 error: 0.125046 +- 0.020222
-Final energy error: 36.935675 +- 101.035619
+Final L2 error: 0.070351 +- 0.010675
+Final energy error: 0.947718 +- 2.365266
 
 
 
 model_wave_energy_multi_epoch50000_net-800-20_loss-complex_mse_loss.pt (4h 34m 18s)
 ----------------------------------------------------------------------------------------
 Final L2 error: 0.025532 +- 0.006608
+Final energy error: 0.000000 +- 0.000000
+
+model_wave_multi_epoch50000_net-800-20_loss-complex_mse_loss.pt (3h 27m 1s)
+----------------------------------------------------------------------------------------
+Final L2 error: 0.025910 +- 0.006692
+Final energy error: 0.227996 +- 0.563610
+
+
+model_wave_energy_simple_epoch10000_net-800-20_loss-complex_mse_loss.pt (1h 16m 35s)
+----------------------------------------------------------------------------------------
+Final L2 error: 0.095979 +- 0.061874
 Final energy error: 0.000000 +- 0.000000
