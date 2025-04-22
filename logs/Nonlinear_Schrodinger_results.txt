@@ -5,9 +5,48 @@ Final L2 error: 0.006375 +- 0.002565
 Final probability error: 0.000088 +- 0.000329
 Final energy error: 0.000794 +- 0.005580
 
-
-model_schro_structure_multi_epoch10000_net-400-20_loss-complex_mse_loss_nonlinear
+model_schro_structure_multi_epoch10000_net-400-20_loss-complex_mse_loss_energy_nonlinear
 ------------------------------------------------------------------------------------------------
-Final L2 error: 0.014062 +- 0.030214
-Final probability error: 0.004018 +- 0.056969
-Final energy error: 0.285643 +- 4.915213
+Final L2 error: 0.034068 +- 0.006779
+Final probability error: 0.023626 +- 0.025592
+Final energy error: 0.141200 +- 0.275985
+
+
+model_schro_structure_multi_epoch10000_net-400-20_loss-complex_mse_loss_prob_nonlinear (0h 29m 3s)
+------------------------------------------------------------------------------------------------
+Final L2 error: 0.006663 +- 0.002108
+Final probability error: 0.000266 +- 0.000509
+Final energy error: 0.001617 +- 0.005842
+
+
+model_schro_structure_multi_epoch10000_net-400-20_loss-complex_mse_loss_nonlinear (0h 32m 28s)
+------------------------------------------------------------------------------------------------
+Final L2 error: 0.007053 +- 0.002765
+Final probability error: 0.000783 +- 0.001739
+Final energy error: 0.000924 +- 0.002365
+
+==========================================================
+model_schro_structure_multi_epoch10000_net-400-20_loss-schro_mse_structure_loss_energy_nonlinear
+------------------------------------------------------------------------------------------------
+Final L2 error: 0.049636 +- 0.016825
+Final probability error: 0.024043 +- 0.062904
+Final energy error: 0.100172 +- 0.144035
+
+model_schro_structure_multi_epoch10000_net-400-20_loss-schro_mse_structure_loss_energy_prob_nonlinear (1h 6m 47s)
+------------------------------------------------------------------------------------------------
+Final L2 error: 0.040273 +- 0.030254
+Final probability error: 0.000195 +- 0.001804
+Final energy error: 0.000534 +- 0.004261
+
+model_schro_structure_multi_epoch10000_net-400-20_loss-schro_mse_structure_loss_prob_nonlinear (0h 47m 56s)
+------------------------------------------------------------------------------------------------
+Final L2 error: 0.010574 +- 0.005082
+Final probability error: 0.000048 +- 0.000126
+Final energy error: 0.001677 +- 0.013322
+
+==========================================================
+model_schro_multi_epoch10000_net-400-20_loss-schro_mse_structure_loss_energy_prob_nonlinear
+------------------------------------------------------------------------------------------------
+Final L2 error: 0.020206 +- 0.013529
+Final probability error: 0.001041 +- 0.003994
+Final energy error: 0.002212 +- 0.006286
