@@ -1,43 +1,179 @@
 Nonlinear Original L = 10, T = 1
 =====================================================================
 Vanilla:
-Final L2 error: 0.004693 +- 0.002334
-Finel probability loss: 0.000009 +- 0.000023
-Final energy error: 0.017322 +- 0.025839
+Final L2 error: 0.004720 +- 0.002346
+Finel probability loss: 0.000010 +- 0.000028
+Final energy error: 0.016727 +- 0.024334
 ------------------------------------------------------------
 
 With probability layer:
-Final L2 error: 0.015340 +- 0.009750
+Final L2 error: 0.005750 +- 0.003538
 Finel probability loss: 0.000000 +- 0.000000
-Final energy error: 0.015213 +- 0.026652
+Final energy error: 0.016246 +- 0.024076
 ------------------------------------------------------------
 
 With energy layer:
-Final L2 error: 0.033939 +- 0.007053
-Finel probability loss: 0.002575 +- 0.001844
+Final L2 error: 0.033687 +- 0.006969
+Finel probability loss: 0.002567 +- 0.001854
 Final energy error: 0.000000 +- 0.000000
 ------------------------------------------------------------
 
 With probability and energy layer:
-Final L2 error: 0.005894 +- 0.002499
+Final L2 error: 0.005830 +- 0.002365
 Finel probability loss: 0.000000 +- 0.000000
-Final energy error: 0.017013 +- 0.025734
+Final energy error: 0.016487 +- 0.024550
 ------------------------------------------------------------
 
 With probability loss:
-Final L2 error: 0.021047 +- 0.014162
-Finel probability loss: 0.000181 +- 0.000464
-Final energy error: 0.019131 +- 0.041628
+Final L2 error: 0.030269 +- 0.011112
+Finel probability loss: 0.000856 +- 0.000618
+Final energy error: 0.000344 +- 0.000406
 ------------------------------------------------------------
 
 With energy loss:
-Final L2 error: 0.016744 +- 0.011902
-Finel probability loss: 0.000152 +- 0.000517
-Final energy error: 0.020271 +- 0.044785
+Final L2 error: 0.026918 +- 0.010330
+Finel probability loss: 0.001312 +- 0.001203
+Final energy error: 0.000644 +- 0.000756
 ------------------------------------------------------------
 
 With probability and energy loss:
-Final L2 error: 0.021047 +- 0.014162
-Finel probability loss: 0.000181 +- 0.000464
-Final energy error: 0.019131 +- 0.041628
+Final L2 error: 0.030269 +- 0.011112
+Finel probability loss: 0.000856 +- 0.000618
+Final energy error: 0.000344 +- 0.000406
+------------------------------------------------------------
+
+
+Nonlinear  L = 10, T = 2
+=====================================================================
+Vanilla:
+Final L2 error: 1.089415 +- 0.239869
+Finel probability loss: 5.749940 +- 12.966556
+Final energy error: 34.719372 +- 116.500549
+------------------------------------------------------------
+
+With probability layer:
+Final L2 error: 0.525221 +- 0.137165
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 1.141654 +- 3.255778
+------------------------------------------------------------
+
+With energy layer:
+Final L2 error: 0.465760 +- 0.094968
+Finel probability loss: 0.032231 +- 0.061156
+Final energy error: 0.000000 +- 0.000000
+------------------------------------------------------------
+
+With probability and energy layer:
+Final L2 error: 0.516675 +- 0.120958
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 0.317696 +- 0.816708
+------------------------------------------------------------
+
+With probability loss:
+Final L2 error: 0.846862 +- 0.183439
+Finel probability loss: 1.780053 +- 3.941845
+Final energy error: 16.018604 +- 71.763596
+------------------------------------------------------------
+
+With energy loss:
+Final L2 error: 0.844922 +- 0.142413
+Finel probability loss: 2.691677 +- 6.127711
+Final energy error: 14.868818 +- 75.128128
+------------------------------------------------------------
+
+With probability and energy loss:
+Final L2 error: 0.846862 +- 0.183439
+Finel probability loss: 1.780053 +- 3.941845
+Final energy error: 16.018604 +- 71.763596
+------------------------------------------------------------
+
+
+Nonlinear  L = 8, T = 1
+=====================================================================
+
+Vanilla:
+Final L2 error: 0.435155 +- 0.147037
+Finel probability loss: 0.026198 +- 0.067288
+Final energy error: 0.045776 +- 0.148913
+------------------------------------------------------------
+
+With probability layer:
+Final L2 error: 0.434331 +- 0.155234
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 0.021261 +- 0.043261
+------------------------------------------------------------
+
+With energy layer:
+Final L2 error: 0.435452 +- 0.164231
+Finel probability loss: 0.027047 +- 0.080693
+Final energy error: 0.000000 +- 0.000000
+------------------------------------------------------------
+
+With probability and energy layer:
+Final L2 error: 0.424825 +- 0.149621
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 0.020352 +- 0.050386
+------------------------------------------------------------
+
+With probability loss:
+Final L2 error: 0.428753 +- 0.151617
+Finel probability loss: 0.029514 +- 0.067439
+Final energy error: 0.044268 +- 0.164013
+------------------------------------------------------------
+
+With energy loss:
+Final L2 error: 0.442343 +- 0.165531
+Finel probability loss: 0.022076 +- 0.058366
+Final energy error: 0.046210 +- 0.119795
+------------------------------------------------------------
+
+With probability and energy loss:
+Final L2 error: 0.428753 +- 0.151617
+Finel probability loss: 0.029514 +- 0.067439
+Final energy error: 0.044268 +- 0.164013
+------------------------------------------------------------
+
+
+Linear  L = 10, T = 1
+=====================================================================
+Vanilla:
+Final L2 error: 0.973247 +- 0.122939
+Finel probability loss: 0.000010 +- 0.000033
+Final energy error: 0.017681 +- 0.025377
+------------------------------------------------------------
+
+With probability layer:
+Final L2 error: 0.973146 +- 0.122814
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 0.017234 +- 0.025165
+------------------------------------------------------------
+
+With energy layer:
+Final L2 error: 0.952900 +- 0.119397
+Finel probability loss: 0.002567 +- 0.001859
+Final energy error: 0.000000 +- 0.000000
+------------------------------------------------------------
+
+With probability and energy layer:
+Final L2 error: 0.972981 +- 0.122669
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 0.017406 +- 0.025370
+------------------------------------------------------------
+
+With probability loss:
+Final L2 error: 0.958764 +- 0.119501
+Finel probability loss: 0.000861 +- 0.000625
+Final energy error: 0.000344 +- 0.000443
+------------------------------------------------------------
+
+With energy loss:
+Final L2 error: 0.959017 +- 0.118221
+Finel probability loss: 0.001359 +- 0.001270
+Final energy error: 0.000651 +- 0.000800
+------------------------------------------------------------
+
+With probability and energy loss:
+Final L2 error: 0.958764 +- 0.119501
+Finel probability loss: 0.000861 +- 0.000625
+Final energy error: 0.000344 +- 0.000443
 ------------------------------------------------------------
