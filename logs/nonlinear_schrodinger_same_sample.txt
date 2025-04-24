@@ -1,0 +1,43 @@
+Nonlinear Original L = 10, T = 1
+=====================================================================
+Vanilla:
+Final L2 error: 0.004693 +- 0.002334
+Finel probability loss: 0.000009 +- 0.000023
+Final energy error: 0.017322 +- 0.025839
+------------------------------------------------------------
+
+With probability layer:
+Final L2 error: 0.015340 +- 0.009750
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 0.015213 +- 0.026652
+------------------------------------------------------------
+
+With energy layer:
+Final L2 error: 0.033939 +- 0.007053
+Finel probability loss: 0.002575 +- 0.001844
+Final energy error: 0.000000 +- 0.000000
+------------------------------------------------------------
+
+With probability and energy layer:
+Final L2 error: 0.005894 +- 0.002499
+Finel probability loss: 0.000000 +- 0.000000
+Final energy error: 0.017013 +- 0.025734
+------------------------------------------------------------
+
+With probability loss:
+Final L2 error: 0.021047 +- 0.014162
+Finel probability loss: 0.000181 +- 0.000464
+Final energy error: 0.019131 +- 0.041628
+------------------------------------------------------------
+
+With energy loss:
+Final L2 error: 0.016744 +- 0.011902
+Finel probability loss: 0.000152 +- 0.000517
+Final energy error: 0.020271 +- 0.044785
+------------------------------------------------------------
+
+With probability and energy loss:
+Final L2 error: 0.021047 +- 0.014162
+Finel probability loss: 0.000181 +- 0.000464
+Final energy error: 0.019131 +- 0.041628
+------------------------------------------------------------
